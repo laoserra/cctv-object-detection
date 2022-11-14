@@ -1,0 +1,14 @@
+__pycache__/
+*.log
+*.zip
+*.jpg
+*.csv
+*.log
+*.swp
+*.txt
+*.pyc
+*.lock
+*.tmp
+input_folder/
+models/faster_rcnn_1024_parent/
+models/yolov4_9_objs/
