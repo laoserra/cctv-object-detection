@@ -4,7 +4,7 @@ docker run \
 schemacrawler/schemacrawler \
 /opt/schemacrawler/schemacrawler.sh \
 --server=sqlite \
---database=validation.db \
+--database=detections.db \
 --info-level=standard \
 --command=schema \
---output-file=output2.png
+--output-file=detections_schema.png
