@@ -1,32 +1,21 @@
-from yolo.utils_yolov3 import load_class_names
+from faster_rcnn.utils import label_map_util
 
 ################################################################################
 #                              Configuration parameters
 ################################################################################
 
-# class labels
-category_index_faster_rcnn = {1: {'id': 1, 'name': 'crowd'},
-                              2: {'id': 2, 'name': 'car'},
-                              3: {'id': 3, 'name': 'van'},
-                              4: {'id': 4, 'name': 'taxi'},
-                              5: {'id': 5, 'name': 'bus'},
-                              6: {'id': 6, 'name': 'lorry'},
-                              7: {'id': 7, 'name': 'pedestrian'},
-                              8: {'id': 8, 'name': 'motorcycle'},
-                              9: {'id': 9, 'name': 'cyclist'}}
-
 # path to images with bounding boxes
 OUTPUT_FOLDER = './output_folder/'
 
 # PATH to existent database
-PATH_DB = OUTPUT_FOLDER + 'validation.db'
+PATH_DB = OUTPUT_FOLDER + 'detections.db'
 
 # path to archive processed images
 PATH_TO_ARCHIVE = './archive_folder/'
 
 # List of strings that is used to add correct label for each box
 # on the parent model
-#PATH_TO_LABELS = './object_detection/data/mscoco_label_map.pbtxt'
+PATH_TO_LABELS = './faster_rcnn/data/mscoco_label_map.pbtxt'
 
 # detection threshold (thres=0 to build the precision/recall graph)
 PREC_REC_THRESHOLD = 0
@@ -50,8 +39,8 @@ HOST = 'localhost'
 
 # category_index to use depends on the model
 def category_index_to_use(model_name):
-    if model_name == 'faster_rcnn_1024_model_1':
-        category_index = category_index_faster_rcnn
+    if model_name == 'faster_rcnn_1024_parent':
+        category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS)
     else:
         category_index = load_class_names(PATH_TO_COCO_LABELS)
 
