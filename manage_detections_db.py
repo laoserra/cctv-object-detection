@@ -1,7 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 import time
-import config_validation_file as config
+import config_detections as config
 
 
 def create_connection(path_to_db):

@@ -8,12 +8,10 @@ import grpc
 import tensorflow as tf
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
-import manage_validation_db as db
-import config_validation_file as config
+import manage_detections_db as db
+import config_detections as config
 from object_detection.utils import visualization_utils as vis_util
-from yolo.utils_yolov3 import load_class_names, draw_outputs, \
-                              resize_image, output_boxes
-import yolo.core.utils as utils_v4
+import yolo.core.utils as utils
 from yolo.core.yolov4 import filter_boxes
 from tensorflow.python.saved_model import tag_constants
 ################################################################################
@@ -28,8 +26,8 @@ category_index = config.category_index_to_use(sys.argv[2])
 
 # gRPC API expects a serialized PredictRequest protocol buffer as input
 
-#def create_grpc_stub(host, port=8505):
 def create_grpc_stub(host, port=8500):
+
     '''Establish a gRPC channel and a stub.'''
 
     hostport = f'{host}:{port}'
@@ -43,18 +41,16 @@ def create_grpc_stub(host, port=8500):
 
 def grpc_request(stub, data_sample, model_name, \
                  signature_name='serving_default'):
+
     '''Call model and signature to make predictions on image.'''
 
     request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name
     request.model_spec.signature_name = signature_name
     shp = [dim for dim in data_sample.shape]
-    if sys.argv[2] == 'yolov3_model_2':
-        request.inputs['input'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
-    #NOT USING TF SERVING FOR YOLOV4
-    #elif sys.argv[2] == 'yolov4_model_3':
-    #request.inputs['input_1'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
-    else:
+    if sys.argv[2] == 'yolov4_9_objs':
+    request.inputs['input_1'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
+    else: #it's the faster rcnn model
         request.inputs['input_tensor'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
     
     result = stub.Predict(request, 100.0)
@@ -67,6 +63,7 @@ def grpc_request(stub, data_sample, model_name, \
 ################################################################################
 
 def run_inference_for_single_image(host, data_sample, model_name):
+
     '''Get an output dictionary with bboxes, scores, classes and 
     number of detections.'''
 
@@ -259,7 +256,7 @@ def show_inference(host, image_path, model_name):
         output_dict['detection_classes'] = np.squeeze(tf.cast(classes, tf.int32), axis=0)
 
         pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), nums.numpy()]
-        image = utils_v4.draw_bbox(image_np, pred_bbox)
+        image = utils.draw_bbox(image_np, pred_bbox)
         image = Image.fromarray(image.astype(np.uint8))
         image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
 

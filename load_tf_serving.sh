@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#           -p 8501:8501 \
 docker run -d --rm --gpus all \
            -p 8500:8500 \
            -v "$(pwd)/models/:/models/" \

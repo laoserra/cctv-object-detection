@@ -1,4 +1,4 @@
-from faster_rcnn.utils import label_map_util
+from object_detection.utils import label_map_util
 
 ################################################################################
 #                              Configuration parameters
