@@ -1,4 +1,5 @@
 from object_detection.utils import label_map_util
+from yolo.utils_yolov3 import load_class_names
 
 ################################################################################
 #                              Configuration parameters

@@ -58,10 +58,19 @@ def grpc_request(stub, data_sample, model_name, \
 #                                  Detection
 ################################################################################
 
-if __name__ == '__main__':
+def show_inference(image_path, model_name):
 
-    if sys.argv[2] == 'yolov4_9_objs':
-        image = Image.open(sys.argv[1])
+    '''Process inference for a set of images.'''
+
+    # read an image
+    image_name = os.path.basename(image_path)
+    image_base = os.path.splitext(image_name)[0]
+    image_ext= os.path.splitext(image_name)[1]
+    new_img_name = image_base + '_bbox_' + model_name + image_ext
+
+    if model_name == 'yolov4_9_objs':
+        #this code below isdifferent from original
+        image = Image.open(image_path)
         image_np = np.array(image)
         image_inference = cv2.resize(image_np, (config.MODEL_SIZE[0], 
                                                          config.MODEL_SIZE[1]))
@@ -69,9 +78,39 @@ if __name__ == '__main__':
         image_inference = np.expand_dims(image_inference, axis=0)
         image_inference = image_inference.astype(np.float32)
     else: # otherwise is a zoo model
-        image = Image.open(sys.argv[1])
+        image = Image.open(image_path)
         image_np = np.array(image)
         image_inference = np.expand_dims(image_np, axis=0)
 
     stub = create_grpc_stub(config.HOST)
-    print(grpc_request(stub, image_inference, sys.argv[2]))
+    rs_grpc = grpc_request(stub, image_inference, model_name)
+
+    shape = tf.TensorShape(rs_grpc.outputs['tf_op_layer_concat_18'].tensor_shape).as_list()
+    shape = shape[1:]
+    output_array = np.array(rs_grpc.outputs['tf_op_layer_concat_18'].float_val).reshape(shape)
+    output_array = tf.constant(output_array, dtype=tf.float32)
+    output_array = tf.expand_dims(output_array, axis=0)
+
+    boxes = output_array[:, :, :4]
+    pred_conf = output_array[:, :, 4:]
+    # set score_threshold = 0.0 to write to database
+    boxes, scores, classes, nums = tf.image.combined_non_max_suppression(
+            boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
+            scores=tf.reshape(pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
+            max_output_size_per_class=100,
+            max_total_size=100,
+            iou_threshold= 0.5,
+            score_threshold= 0.5) 
+
+    # need to filter bboxes greater than 50% score. check todo txt file
+    pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), nums.numpy()]
+    image = utils.draw_bbox(image_np, pred_bbox)
+    image = Image.fromarray(image.astype(np.uint8))
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+
+    cv2.imwrite(config.OUTPUT_FOLDER + new_img_name, image)
+
+
+if __name__ == '__main__':
+
+    show_inference(sys.argv[1], sys.argv[2])
