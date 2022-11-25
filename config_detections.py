@@ -34,6 +34,7 @@ MAX_OUTPUT_SIZE = 100
 # maximum number of boxes per class on each image?
 MAX_OUTPUT_SIZE_PER_CLASS = 100
 IOU_THRESHOLD = 0.5
+score_threshold_draw = 0.5
 
 #IP address of the model server
 HOST = 'localhost'

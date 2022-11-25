@@ -69,11 +69,10 @@ def show_inference(image_path, model_name):
     new_img_name = image_base + '_bbox_' + model_name + image_ext
 
     if model_name == 'yolov4_9_objs':
-        #this code below isdifferent from original
         image = Image.open(image_path)
         image_np = np.array(image)
         image_inference = cv2.resize(image_np, (config.MODEL_SIZE[0], 
-                                                         config.MODEL_SIZE[1]))
+                                                config.MODEL_SIZE[1]))
         image_inference = image_inference / 255.
         image_inference = np.expand_dims(image_inference, axis=0)
         image_inference = image_inference.astype(np.float32)
@@ -100,9 +99,14 @@ def show_inference(image_path, model_name):
             max_output_size_per_class=100,
             max_total_size=100,
             iou_threshold= 0.5,
-            score_threshold= 0.5) 
+            score_threshold= 0.0) 
 
-    # need to filter bboxes greater than 50% score. check todo txt file
+    # choose bounding boxes to write to image
+    counter = 0
+    for score in scores[0]:
+        if score > config.score_threshold_draw:
+            counter += 1
+    nums = tf.constant([counter])
     pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), nums.numpy()]
     image = utils.draw_bbox(image_np, pred_bbox)
     image = Image.fromarray(image.astype(np.uint8))
