@@ -108,6 +108,9 @@ def show_inference(image_path, model_name):
             counter += 1
     nums = tf.constant([counter])
     pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), nums.numpy()]
+    print(np.array(boxes).flags)
+    print(pred_bbox[0].flags)
+    print(image_np)
     image = utils.draw_bbox(image_np, pred_bbox)
     image = Image.fromarray(image.astype(np.uint8))
     image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)

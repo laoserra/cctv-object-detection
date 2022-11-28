@@ -49,7 +49,7 @@ def grpc_request(stub, data_sample, model_name, \
     request.model_spec.signature_name = signature_name
     shp = [dim for dim in data_sample.shape]
     if sys.argv[2] == 'yolov4_9_objs':
-        request.inputs['input_1'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
+    request.inputs['input_1'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
     else: #it's the faster rcnn model
         request.inputs['input_tensor'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
     
@@ -71,32 +71,40 @@ def run_inference_for_single_image(host, data_sample, model_name):
     rs_grpc = grpc_request(stub, data_sample, model_name)
 
     # get output dict depending on the model
-    if model_name == 'yolov4_9_objs':
+    if model_name == 'yolov3_model_2':
 
-        shape = tf.TensorShape(rs_grpc.outputs['tf_op_layer_concat_18'].tensor_shape).as_list()
-        shape = shape[1:]
-        output_array = np.array(rs_grpc.outputs['tf_op_layer_concat_18'].float_val).reshape(shape)
-        output_array = tf.constant(output_array, dtype=tf.float32)
-        output_array = tf.expand_dims(output_array, axis=0)
+        # outputs of interest. 
+        #outputs' names may vary according to yolo model. 
+        #check model output signatures first
+        outputs = ['yolo_nms',
+                   'yolo_nms_1',
+                   'yolo_nms_2', 
+                   'yolo_nms_3']
 
-        boxes = output_array[:, :, :4]
-        pred_conf = output_array[:, :, 4:]
-        # set score_threshold = 0.0 to write to database
-        boxes, scores, classes, nums = tf.image.combined_non_max_suppression(
-                boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
-                scores=tf.reshape(pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
-                max_output_size_per_class=100,
-                max_total_size=100,
-                iou_threshold= 0.5,
-                score_threshold= 0.0) 
-
+        shape = []
         output_dict = {}
-        output_dict['detection_boxes'] = np.squeeze(boxes, axis=0)
-        output_dict['num_detections'] = int(nums)
-        output_dict['detection_scores'] = np.squeeze(scores, axis=0)
-        output_dict['detection_classes'] = np.squeeze(tf.cast(classes, tf.int32), axis=0)
 
-    else: #it's a zoo model
+        # need check grpc outputs values and set conditions
+        for output in outputs:
+            shape = tf.TensorShape(rs_grpc.outputs[output].tensor_shape).as_list()
+            shape = shape[1:]
+            if output == 'yolo_nms' or output == 'yolo_nms_1':
+                output_dict[output] = rs_grpc.outputs[output].float_val
+            elif output == 'yolo_nms_2':
+                output_dict[output] = rs_grpc.outputs[output].int64_val
+            else:
+                output_dict[output] = rs_grpc.outputs[output].int_val
+            output_dict[output] = np.array(output_dict[output]).reshape(shape)
+            shape = []
+
+        output_dict['detection_boxes'] = output_dict['yolo_nms']
+        output_dict['detection_scores'] = output_dict['yolo_nms_1']
+        output_dict['detection_classes'] = output_dict['yolo_nms_2']
+        # num_detections is an int
+        num_detections = int(output_dict.pop('yolo_nms_3'))
+        output_dict['num_detections'] = num_detections
+
+    else:
 
         # outputs of interest
         outputs = ['num_detections',
@@ -106,10 +114,12 @@ def run_inference_for_single_image(host, data_sample, model_name):
 
         shape = []
         output_dict = {}
+
         for output in outputs:
             shape = tf.TensorShape(rs_grpc.outputs[output].tensor_shape).as_list()
             shape = shape[1:]
             output_dict[output] = np.array(rs_grpc.outputs[output].float_val).reshape(shape)
+            shape = []
         # num_detections is an int
         num_detections = int(output_dict.pop('num_detections'))
         output_dict['num_detections'] = num_detections
@@ -187,39 +197,71 @@ def show_inference(host, image_path, model_name):
     image_ext= os.path.splitext(image_name)[1]
     new_img_name = image_base + '_bbox_' + model_name + image_ext
 
-    if model_name == 'yolov4_9_objs':
-        image = Image.open(image_path)
-        image_np = np.array(image)
-        image_inference = cv2.resize(image_np, (config.MODEL_SIZE[0], 
-                                                config.MODEL_SIZE[1]))
-        image_inference = image_inference / 255.
-        image_inference = np.expand_dims(image_inference, axis=0)
-        image_inference = image_inference.astype(np.float32)
+    if model_name == 'yolov3_model_2':
+        #cv2.imread returns a numpy array
+        image_np = cv2.imread(image_path)
+        image_inference = tf.expand_dims(image_np, 0)
+        image_inference = resize_image(image_inference, (config.MODEL_SIZE[0], 
+                                                         config.MODEL_SIZE[1]))
+        image_inference = image_inference.numpy()
         # Actual detection.
         output_dict = run_inference_for_single_image(host, image_inference, model_name)
 
-        boxes = np.expand_dims(output_dict['detection_boxes'], axis=0)
-        scores = np.expand_dims(output_dict['detection_scores'], axis=0)
-        classes = np.expand_dims(output_dict['detection_classes'], axis=0)
-        classes = classes.astype(np.float32)
+        #not working
+        img_to_draw = draw_outputs(
+                image_np, 
+                output_dict['detection_boxes'], 
+                output_dict['detection_scores'], 
+                output_dict['detection_classes'], 
+                output_dict['num_detections'], 
+                category_index)
+
+        #not working
+        cv2.imwrite(config.OUTPUT_FOLDER + \
+                '/' + new_img_name, img_to_draw)
 
 
-        # choose bounding boxes to write to image
-        counter = 0
-        for score in scores[0]:
-            if score > config.score_threshold_draw:
-                counter += 1
-        nums = np.array([counter], dtype=np.int32)
-        # np.copy clears previously set WRITEABLE=False flag
-        # this is needed because utils.draw_bbox modifies boxes
-        pred_bbox = [np.copy(boxes), scores, classes, nums]
+    elif model_name == 'yolov4_model_3':
+        #cv2.imread returns a numpy array
+        image_np = cv2.imread(image_path)
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        # the yolo model we are using implies normalization first
+        image_inference = cv2.resize(image_np, (config.MODEL_SIZE[0], 
+                                                         config.MODEL_SIZE[1]))
+        image_inference = image_inference / 255.
+        image_inference = np.expand_dims(image_inference, axis=0)
+        image_inference = image_inference.astype(np.float32)
+        model_path = './models/yolov4_model_3/1'
+        saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+        infer = saved_model_loaded.signatures['serving_default']
+        batch_data = tf.constant(image_inference)
+        pred = infer(batch_data)
+        for value in pred.values():
+            boxes = value[:, :, :4]
+            pred_conf = value[:, :, 4:]
+
+        # score_threshold = 0.0 to write to database
+        boxes, scores, classes, nums = tf.image.combined_non_max_suppression(
+                boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
+                scores=tf.reshape(pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
+                max_output_size_per_class=100,
+                max_total_size=100,
+                iou_threshold= .5,
+                score_threshold= 0.0) 
+
+        output_dict = {}
+        output_dict['detection_boxes'] = np.squeeze(boxes, axis=0)
+        output_dict['num_detections'] = int(nums)
+        output_dict['detection_scores'] = np.squeeze(scores, axis=0)
+        output_dict['detection_classes'] = np.squeeze(tf.cast(classes, tf.int32), axis=0)
+
+        pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), nums.numpy()]
         image = utils.draw_bbox(image_np, pred_bbox)
-        print('bingo')
-        sys.exit()
         image = Image.fromarray(image.astype(np.uint8))
         image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
-        cv2.imwrite(config.OUTPUT_FOLDER + new_img_name, image)
 
+        cv2.imwrite(config.OUTPUT_FOLDER + \
+                '/' + new_img_name, image)
 
     # otherwise is a zoo model
     else:

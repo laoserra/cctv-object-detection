@@ -16,7 +16,7 @@ PATH_TO_ARCHIVE = './archive_folder/'
 
 # List of strings that is used to add correct label for each box
 # on the parent model
-PATH_TO_LABELS = './faster_rcnn/data/mscoco_label_map.pbtxt'
+PATH_TO_LABELS = './object_detection/data/mscoco_label_map.pbtxt'
 
 # detection threshold (thres=0 to build the precision/recall graph)
 PREC_REC_THRESHOLD = 0
