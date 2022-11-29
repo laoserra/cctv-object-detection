@@ -49,7 +49,7 @@ def grpc_request(stub, data_sample, model_name, \
     request.model_spec.signature_name = signature_name
     shp = [dim for dim in data_sample.shape]
     if sys.argv[2] == 'yolov4_9_objs':
-    request.inputs['input_1'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
+        request.inputs['input_1'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
     else: #it's the faster rcnn model
         request.inputs['input_tensor'].CopyFrom(tf.make_tensor_proto(data_sample, shape=shp))
     

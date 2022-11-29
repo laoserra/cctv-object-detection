@@ -5,6 +5,14 @@ from yolo.utils_yolov3 import load_class_names
 #                              Configuration parameters
 ################################################################################
 
+# objects of interest for frcnn parent model
+objects_of_interest = ['bicycle', 
+                       'car', 
+                       'person', 
+                       'motorcycle', 
+                       'bus', 
+                       'truck']
+
 # path to images with bounding boxes
 OUTPUT_FOLDER = './output_folder/'
 
@@ -25,7 +33,6 @@ PREC_REC_THRESHOLD = 0
 SCORE_THRESHOLD = 0.5
 
 ### Yolo specific configurations ###
-#MODEL_SIZE = (416, 416, 3)
 MODEL_SIZE = (608, 608, 3)
 NUM_CLASSES = 9
 PATH_TO_COCO_LABELS = './yolo/coco.names' 
@@ -43,7 +50,7 @@ HOST = 'localhost'
 def category_index_to_use(model_name):
     if model_name == 'faster_rcnn_1024_parent':
         category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS)
-    else:
+    else: # it's a yolo model
         category_index = load_class_names(PATH_TO_COCO_LABELS)
 
     return category_index

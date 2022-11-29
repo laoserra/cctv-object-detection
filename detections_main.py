@@ -65,10 +65,12 @@ def grpc_request(stub, data_sample, model_name, \
 def run_inference_for_single_image(host, data_sample, model_name):
 
     '''Get an output dictionary with bboxes, scores, classes and 
-    number of detections.'''
+    number of detections per image.'''
 
     stub = create_grpc_stub(host)
     rs_grpc = grpc_request(stub, data_sample, model_name)
+
+    boxes = None; scores = None; classes = None; nums = None
 
     # get output dict depending on the model
     if model_name == 'yolov4_9_objs':
@@ -85,10 +87,10 @@ def run_inference_for_single_image(host, data_sample, model_name):
         boxes, scores, classes, nums = tf.image.combined_non_max_suppression(
                 boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
                 scores=tf.reshape(pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
-                max_output_size_per_class=100,
-                max_total_size=100,
-                iou_threshold= 0.5,
-                score_threshold= 0.0) 
+                max_output_size_per_class=config.MAX_OUTPUT_SIZE_PER_CLASS,
+                max_total_size=config.MAX_OUTPUT_SIZE,
+                iou_threshold=config.IOU_THRESHOLD,
+                score_threshold=config.PREC_REC_THRESHOLD) 
 
         output_dict = {}
         output_dict['detection_boxes'] = np.squeeze(boxes, axis=0)
@@ -113,70 +115,76 @@ def run_inference_for_single_image(host, data_sample, model_name):
         # num_detections is an int
         num_detections = int(output_dict.pop('num_detections'))
         output_dict['num_detections'] = num_detections
-
         # detection_classes should be ints.
         output_dict['detection_classes'] = output_dict['detection_classes'].astype(np.int64)
 
+    return output_dict, boxes, scores, classes, nums
 
-    return output_dict
-
-
+# FILTER HERE THE OBJEXTS OF INTEREST ESPECIALLY FOR THE FRCNN PARENT MODEL--------------------------------
+#  OR DO WE PUT ALL THE 80 OBJECTS IN THE DATABASE?
 def get_detections(image_name, image_shape, boxes, classes, scores, 
                    num_detections, cat_index, min_score_thresh, model):
     '''Retrieve attributes of detected objects.'''
 
     im_width, im_height = image_shape[1], image_shape[0]
+
     detections = []
     for i in range(num_detections):
 
-        #if scores is None or scores[i] > min_score_thresh:
         if scores[i] > min_score_thresh:
             
             box = tuple(boxes[i].tolist())
 
-            if model == 'yolov4_model_3':
+            if (model == 'yolov4_9_objs' and 
+                    classes[i] in range(len(cat_index))):
                 ymin, xmin, ymax, xmax = box
-                if classes[i] in range(len(cat_index)):
-                    class_name = cat_index[classes[i]]
-                else:
-                    class_name = 'N/A'
+                class_name = cat_index[classes[i]]
+                (left, right, top, bottom) = (xmin * im_width,
+                                              xmax * im_width,
+                                              ymin * im_height,
+                                              ymax * im_height)
+                detections.append(
+                {'image': image_name,
+                 'image_size': {
+                     'im_width':im_width, 
+                     'im_height':im_height},
+                 'object': class_name,
+                 'coordinates': {
+                     'left': left,
+                     'right': right,
+                     'bottom': bottom,
+                     'top': top},
+                 'score': float(scores[i])
+                })
+            
+            else: # it is a zoo model
+                temp = cat_index[classes[i]]['name']
+                if (classes[i] in cat_index.keys() and 
+                        temp in config.objects_of_interest):
+                    ymin, xmin, ymax, xmax = box
+                    class_name = temp
 
-            elif model == 'yolov3_model_2':
-                xmin, ymin, xmax, ymax = box
-                if classes[i] in range(len(cat_index)):
-                    class_name = cat_index[classes[i]]
-                else:
-                    class_name = 'N/A'
+                    (left, right, top, bottom) = (xmin * im_width,
+                                                  xmax * im_width,
+                                                  ymin * im_height,
+                                                  ymax * im_height)
 
-
-            # it is a zoo model
-            else:
-                ymin, xmin, ymax, xmax = box
-                if classes[i] in cat_index.keys():
-                    class_name = cat_index[classes[i]]['name']
-                else:
-                    class_name = 'N/A'
-
-            (left, right, top, bottom) = (xmin * im_width,
-                                          xmax * im_width,
-                                          ymin * im_height,
-                                          ymax * im_height)
-
-            detections.append(
-            {'image': image_name,
-             'image_size': {
-                 'im_width':im_width, 
-                 'im_height':im_height},
-             'object': class_name,
-             'coordinates': {
-                 'left': left,
-                 'right': right,
-                 'bottom': bottom,
-                 'top': top},
-             'score': float(scores[i])
-            })
+                    detections.append(
+                    {'image': image_name,
+                     'image_size': {
+                         'im_width':im_width, 
+                         'im_height':im_height},
+                     'object': class_name,
+                     'coordinates': {
+                         'left': left,
+                         'right': right,
+                         'bottom': bottom,
+                         'top': top},
+                     'score': float(scores[i])
+                    })
 
     return detections
+
 
 def show_inference(host, image_path, model_name):
     '''Process inference for a set of images.'''
@@ -196,39 +204,34 @@ def show_inference(host, image_path, model_name):
         image_inference = np.expand_dims(image_inference, axis=0)
         image_inference = image_inference.astype(np.float32)
         # Actual detection.
-        output_dict = run_inference_for_single_image(host, image_inference, model_name)
+        output_dict, boxes, scores, classes, nums =\
+                run_inference_for_single_image(host, 
+                                               image_inference, 
+                                               model_name)
 
-        boxes = np.expand_dims(output_dict['detection_boxes'], axis=0)
-        scores = np.expand_dims(output_dict['detection_scores'], axis=0)
-        classes = np.expand_dims(output_dict['detection_classes'], axis=0)
-        classes = classes.astype(np.float32)
-
-
-        # choose bounding boxes to write to image
+        # put boxes and labels on image
         counter = 0
         for score in scores[0]:
             if score > config.score_threshold_draw:
                 counter += 1
         nums = np.array([counter], dtype=np.int32)
-        # np.copy clears previously set WRITEABLE=False flag
-        # this is needed because utils.draw_bbox modifies boxes
-        pred_bbox = [np.copy(boxes), scores, classes, nums]
+        pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), nums]
         image = utils.draw_bbox(image_np, pred_bbox)
-        print('bingo')
-        sys.exit()
         image = Image.fromarray(image.astype(np.uint8))
         image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+        # save image with bounding boxes
         cv2.imwrite(config.OUTPUT_FOLDER + new_img_name, image)
 
-
-    # otherwise is a zoo model
-    else:
+    else: # otherwise is a zoo model
         image = Image.open(image_path)
         image_np = np.array(image)
         image_inference = np.expand_dims(image_np, axis=0)
         # Actual detection.
-        output_dict = run_inference_for_single_image(host, image_inference, model_name)
-
+        output_dict = run_inference_for_single_image(host, 
+                                                     image_inference, 
+                                                     model_name)[0]
+        # ---- NEED TO FIGURE OUT A WAY TO DRAW ONLY THE OBJECTS OF INTEREST --- #
+        # as in detections below
         # put boxes and labels on image
         vis_util.visualize_boxes_and_labels_on_image_array(
             image_np,
@@ -238,13 +241,12 @@ def show_inference(host, image_path, model_name):
             category_index,
             use_normalized_coordinates=True,
             max_boxes_to_draw=200,
-            min_score_thresh=config.SCORE_THRESHOLD,
+            min_score_thresh=config.score_threshold_draw,
             line_thickness=6)
 
         # save image with bounding boxes
         im_save = Image.fromarray(image_np)
         im_save.save(config.OUTPUT_FOLDER + '/' + new_img_name)
-
 
     detections = get_detections(
         image_name,
@@ -257,12 +259,10 @@ def show_inference(host, image_path, model_name):
         config.PREC_REC_THRESHOLD,
         model_name)
 
-    # write initial attributes to image_model table in validation db
+    # write initial attributes to image_model table in detections db
     db.insert_image_model_data(model_name, image_name)
-    # write detections to validation db
+    # write detections to detections db
     db.insert_multiple_detections(model_name, image_name, detections)
-    # update counts on the image_model table of validation db
-    db.update_counts(model_name, image_name, detections)
 
 
 if __name__ == '__main__':
