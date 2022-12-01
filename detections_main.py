@@ -14,6 +14,7 @@ from object_detection.utils import visualization_utils as vis_util
 import yolo.core.utils as utils
 from yolo.core.yolov4 import filter_boxes
 from tensorflow.python.saved_model import tag_constants
+
 ################################################################################
 #                              Model preparation
 ################################################################################
@@ -245,6 +246,9 @@ def show_inference(host, image_path, model_name):
         category_index,
         config.PREC_REC_THRESHOLD,
         model_name)
+
+    print(detections)
+
     # write initial attributes to image_model table in detections db
     db.insert_image_model_data(model_name, image_name)
     # write detections to detections db
