@@ -124,16 +124,3 @@ def insert_multiple_detections(model_name, image_name, detections):
     VALUES (?,?,?,?,?,?,?);
     '''
     manage_multiple_records(insert_detections, detections_list, 'detections')
-
-def update_image_size(detections):
-    '''Update size of image on the images' table after image is processed.'''
-    filename = detections[0]['image']
-    width = detections[0]['image']['image_size']['im_width']
-    height = detections[0]['image']['image_size']['im_height']
-    update_size = f'''
-    UPDATE images
-    SET width = {width}
-    SET width = {width}
-    WHERE name = {filename};
-    '''
-    manage_database(update_counts)

@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS images(
     id INTEGER  PRIMARY KEY,
     unix_time_insertion INTEGER,
     name VARCHAR(40) NOT NULL,
-    image_height INTEGER,
-    image_width INTEGER
+    width INTEGER,
+    height INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS image_model (

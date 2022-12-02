@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 dir_in=$(pwd)/input_folder
-#dir_in=$(pwd)/../ToLabel/*
-script_detections=$(pwd)/detections_validation.py
+script_detections=$(pwd)/detections_main.py
 
 source /home/lserra/python-virtual-environments/serving/bin/activate
 #source /home/datasci/.virtualenvs/video/bin/activate
