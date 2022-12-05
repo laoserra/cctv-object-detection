@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS images(
     unix_time_insertion INTEGER,
     name VARCHAR(40) NOT NULL,
     width INTEGER,
-    height INTEGER
+    height INTEGER,
+    valid INTEGER DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS image_model (
