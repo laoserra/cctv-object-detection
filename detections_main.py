@@ -247,12 +247,12 @@ def show_inference(host, image_path, model_name):
         config.PREC_REC_THRESHOLD,
         model_name)
 
-    print(detections)
-
     # write initial attributes to image_model table in detections db
     db.insert_image_model_data(model_name, image_name)
-    # write detections to detections db
-    db.insert_multiple_detections(model_name, image_name, detections)
+    # only write detections if existent and highest score greather than
+    if detections and detections[0]['score'] >= 0.0005:
+        # write detections to detections db
+        db.insert_multiple_detections(model_name, image_name, detections)
 
 
 if __name__ == '__main__':

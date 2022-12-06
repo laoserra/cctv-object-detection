@@ -19,20 +19,18 @@ do
     sqlite3 $(pwd)/output_folder/detections.db "INSERT INTO images (unix_time_insertion,name,width,height) 
                                                 VALUES($unix_time,'$filename',$width,$height);"
     if [ $width == 550 ] && [ $height == 367 ]; then
-        echo --------------------------------------------------------------------------------
-        echo ---------------------      Camera in use by GOC     ----------------------------
-        echo --------------------------------------------------------------------------------
+        echo ---------- image $filename: Camera in use by GOC -------------------------------
         sqlite3 $(pwd)/output_folder/detections.db "UPDATE images
                                                     SET valid = 0
                                                     WHERE unix_time_insertion = $unix_time
                                                     AND name = '$filename';"
-        mv $file $dir_archive
+#        mv $file $dir_archive
     else
-        echo ---------- executing faster_rcnn_1024_parent model ---------- 
+        echo ---------- executing faster_rcnn_1024_parent model on image $filename ---------- 
         python $script_detections $file faster_rcnn_1024_parent > $dir_logs/"$(basename $file .jpg)_rcnn.log" 2>&1
-        echo ---------- executing yolov4_9_objs model ---------- 
+        echo ---------- executing yolov4_9_objs model on image $filename -------------------- 
         python $script_detections $file yolov4_9_objs > $dir_logs/"$(basename $file .jpg)_yolo.log" 2>&1
-        mv $file $dir_archive
+#        mv $file $dir_archive
     fi
 done
 
