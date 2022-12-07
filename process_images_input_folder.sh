@@ -4,6 +4,7 @@ dir_in=$(pwd)/input_folder
 script_detections=$(pwd)/detections_main.py
 dir_logs=$(pwd)/logs
 dir_archive=$(pwd)/archive_folder
+database=$(pwd)/output_folder/detections.db
 source /home/lserra/python-virtual-environments/serving/bin/activate
 #source /home/datasci/.virtualenvs/video/bin/activate
 
@@ -16,14 +17,14 @@ do
     height=$(identify -format "%h" $file)
     #number of seconds since the epoch
     unix_time=$(date +%s)
-    sqlite3 $(pwd)/output_folder/detections.db "INSERT INTO images (unix_time_insertion,name,width,height) 
-                                                VALUES($unix_time,'$filename',$width,$height);"
-    if [ $width == 550 ] && [ $height == 367 ]; then
+    sqlite3 $database "INSERT INTO images (unix_time_insertion,name,width,height) 
+                       VALUES($unix_time,'$filename',$width,$height);"
+    if [ "$width" -eq 550 ] && [ "$height" -eq 367 ]; then
         echo ---------- image $filename: Camera in use by GOC -------------------------------
-        sqlite3 $(pwd)/output_folder/detections.db "UPDATE images
-                                                    SET valid = 0
-                                                    WHERE unix_time_insertion = $unix_time
-                                                    AND name = '$filename';"
+        sqlite3 $database "UPDATE images
+                           SET valid = 0
+                           WHERE unix_time_insertion = $unix_time
+                           AND name = '$filename';"
 #        mv $file $dir_archive
     else
         echo ---------- executing faster_rcnn_1024_parent model on image $filename ---------- 
