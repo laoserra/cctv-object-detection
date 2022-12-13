@@ -7,6 +7,7 @@ dir_archive=$(pwd)/archive_folder
 database=$(pwd)/output_folder/detections.db
 source /home/lserra/python-virtual-environments/serving/bin/activate
 #source /home/datasci/.virtualenvs/video/bin/activate
+#source /home/ls283h/python-virtual-environments/serving/bin/activate
 
 # event "close_write" allows for created files to be closed before processing
 inotifywait -m -e close_write,moved_to  --format "%w%f" $dir_in | while read file
@@ -22,7 +23,7 @@ do
         if [ "$width" -eq 550 ] && [ "$height" -eq 367 ]; then
             echo ---------- image $filename: Camera in use by GOC -------------------------------
             sqlite3 $database "UPDATE images
-                               SET valid = 0
+                               SET warnings = 1
                                WHERE unix_time_insertion = $unix_time
                                AND name = '$filename';"
             mv $file $dir_archive

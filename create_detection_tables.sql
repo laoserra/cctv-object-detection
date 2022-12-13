@@ -3,21 +3,21 @@ DROP TABLE IF EXISTS images;
 DROP TABLE IF EXISTS image_model;
 DROP TABLE IF EXISTS detections;
 
-CREATE TABLE IF NOT EXISTS models(
+CREATE TABLE models(
     id INTEGER  PRIMARY KEY,
     name VARCHAR(40) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS images(
+CREATE TABLE images(
     id INTEGER  PRIMARY KEY,
     unix_time_insertion INTEGER,
     name VARCHAR(40) NOT NULL,
     width INTEGER,
     height INTEGER,
-    valid INTEGER DEFAULT 1
+    warnings INTEGER DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS image_model (
+CREATE TABLE image_model (
     id INTEGER PRIMARY KEY,
     image_id INTEGER NOT NULL,
     model_id INTEGER NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS image_model (
         ON DELETE NO ACTION
 );
 
-CREATE TABLE IF NOT EXISTS detections (
+CREATE TABLE detections (
   id INTEGER PRIMARY KEY,
   img_mdl_id INTEGER NOT NULL,
   class_name VARCHAR(30) NOT NULL,

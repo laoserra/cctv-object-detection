@@ -22,7 +22,7 @@ do
     if [ "$width" -eq 550 ] && [ "$height" -eq 367 ]; then
         echo ---------- image $filename: Camera in use by GOC -------------------------------
         sqlite3 $database "UPDATE images
-                           SET valid = 0
+                           SET warnings = 1
                            WHERE unix_time_insertion = $unix_time
                            AND name = '$filename';"
 #        mv $file $dir_archive
