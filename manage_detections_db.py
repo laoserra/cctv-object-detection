@@ -113,7 +113,7 @@ def insert_multiple_detections(model_name, image_name, detections):
                 round(detection['coordinates']['right'], 3),
                 round(detection['coordinates']['bottom'], 3),
                 round(detection['coordinates']['top'], 3),
-                round(detection['score'], 3))
+                round(detection['score'], 5))
         detections_list.append(item)
         item = None
 

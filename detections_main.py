@@ -249,10 +249,16 @@ def show_inference(host, image_path, model_name):
 
     # write initial attributes to image_model table in detections db
     db.insert_image_model_data(model_name, image_name)
-    # only write detections if existent and highest score greather than
-    if detections and detections[0]['score'] >= 0.0005:
-        # write detections to detections db
-        db.insert_multiple_detections(model_name, image_name, detections)
+    # only write detections if existent
+    if detections:
+        #score threshold used is highest obtained for a monochrome image
+        # items in detections are ordered by score in descending order
+        if (model_name == 'faster_rcnn_1024_parent' and
+            detections[0]['score'] > 0.00013179912639316171):
+            # write detections to detections db
+            db.insert_multiple_detections(model_name, image_name, detections)
+        elif model_name == 'yolov4_9_objs':
+            db.insert_multiple_detections(model_name, image_name, detections)
 
 
 if __name__ == '__main__':
