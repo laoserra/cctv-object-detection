@@ -6,7 +6,8 @@ dir_logs=$(pwd)/logs
 dir_archive=$(pwd)/archive_folder
 database=$(pwd)/output_folder/detections.db
 source /home/lserra/python-virtual-environments/serving/bin/activate
-#source /home/datasci/.virtualenvs/video/bin/activate
+#source /home/datasci/.virtualenvs/video/bin/activate #ubdc2 server
+#source /home/datasci/.virtualenvs/serving/bin/activate #ubdc3 server
 
 start=`date +%s`
 

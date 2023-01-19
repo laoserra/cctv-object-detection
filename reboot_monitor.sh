@@ -2,6 +2,7 @@
 
 #cd /home/ls283h/Work/cctv-object-detection
 cd /home/lserra/Work/UBDC/cctv_object_detection_v2
+#cd /home/datasci/Work/cctv_object_detection #ubdc3 path
 
 script_load_monitor=$(pwd)/monitor_images_input_folder.sh
 SESSIONNAME="monitor"
