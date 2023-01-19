@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-docker run -d --rm --gpus all \
+docker run -d --restart always --gpus all \
            -p 8500:8500 \
            -v "$(pwd)/models/:/models/" \
            -t tensorflow/serving:2.8.2 \
