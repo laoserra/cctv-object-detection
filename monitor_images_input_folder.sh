@@ -5,9 +5,10 @@ script_detections=$(pwd)/detections_main.py
 dir_logs=$(pwd)/logs
 dir_archive=$(pwd)/archive_folder
 database=$(pwd)/output_folder/detections.db
-source /home/lserra/python-virtual-environments/serving/bin/activate
-#source /home/datasci/.virtualenvs/video/bin/activate
-#source /home/ls283h/python-virtual-environments/serving/bin/activate
+source /home/lserra/python-virtual-environments/serving/bin/activate #my laptop path
+#source /home/datasci/.virtualenvs/video/bin/activate #ubdc2 path
+#source /home/datasci/.virtualenvs/serving/bin/activate #ubdc3 path
+#source /home/ls283h/python-virtual-environments/serving/bin/activate #my desktop path
 
 # event "close_write" allows for created files to be closed before processing
 inotifywait -m -e close_write,moved_to  --format "%w%f" $dir_in | while read file
