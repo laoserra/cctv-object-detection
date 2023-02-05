@@ -1,10 +1,13 @@
 docker run \
--v "$(pwd)/output_folder/":/home/schcrwlr/ \
+-v "$(pwd)":/home/schcrwlr \
 --rm -it \
-schemacrawler/schemacrawler \
-/opt/schemacrawler/schemacrawler.sh \
---server=sqlite \
---database=detections.db \
+schemacrawler/schemacrawler:v16.19.7 \
+/opt/schemacrawler/bin/schemacrawler.sh \
+--server=postgresql \
+--database=detections \
+--schemas=public \
+--user=postgres \
+--password=serra \
 --info-level=standard \
 --command=schema \
 --output-file=detections_schema.png

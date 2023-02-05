@@ -9,6 +9,9 @@ __pycache__/
 *.pyc
 *.lock
 *.tmp
+.ash_history
+.java/
+.sdb/
 input_folder/
 models/faster_rcnn_1024_parent/
 models/yolov4_9_objs/
