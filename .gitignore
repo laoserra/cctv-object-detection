@@ -12,6 +12,7 @@ __pycache__/
 .ash_history
 .java/
 .sdb/
+.cache/
 input_folder/
 models/faster_rcnn_1024_parent/
 models/yolov4_9_objs/

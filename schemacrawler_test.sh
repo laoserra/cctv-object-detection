@@ -1,12 +1,12 @@
 docker run \
 --mount type=bind,source="$(pwd)",target=/home/schcrwlr \
---rm -it \
+--rm -it --network=host \
 schemacrawler/schemacrawler:v16.19.7 \
 /opt/schemacrawler/bin/schemacrawler.sh \
 --server postgresql \
---host localhost \
+--host 127.0.0.1 \
 --user postgres \
---password pass \
+--password \
 --database detections \
 --info-level standard \
 --command schema \
