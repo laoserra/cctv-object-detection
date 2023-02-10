@@ -1,113 +1,100 @@
-import sqlite3
-from sqlite3 import Error
-import time
-import config_detections as config
+#!/usr/bin/env python3
+
+from configparser import ConfigParser
+import psycopg2
 
 
-def create_connection(path_to_db):
-    connection = None
-    try:
-        connection = sqlite3.connect(path_to_db)
-        print('Connection to SQLite DB successful')
-    except Error as e:
-        print(f'The error "{e}" ocurred when trying to connect to db')
+def config(filename='detections.ini', section='postgresql'):
+    # create a parser
+    parser = ConfigParser()
+    # read config file
+    parser.read(filename)
 
-    return connection
+    # get section, default to postgresql
+    db = {}
+    if parser.has_section(section):
+        params = parser.items(section)
+        for param in params:
+            db[param[0]] = param[1]
+    else:
+        raise Exception(f'Section {section} not found in the {filename} file')
 
-
-# Establish a connection to existent database
-connection = create_connection(config.PATH_DB)
-
-
-def manage_database(command, connection_to_db=connection):
-    cursor = connection_to_db.cursor()
-    try:
-        cursor.execute(command)
-        connection_to_db.commit()
-        print('Commmand executed successfully')
-    except Error as e:
-        print(f'The error "{e}" ocurred')
+    return db
 
 
 # Execute a query to the database
-def execute_query(query, condition=None, connection_to_db=connection):
-    cursor = connection_to_db.cursor()
-    result = None
+def execute_query(query, condition=None, table):
+    '''Query tables in the database.'''
+
+    conn = None
     try:
+        # read connection parameters
+        params = config()
+        # connect to the PostgreSQL database
+        conn = psycopg2.connect(**params)
+        # create new cursor
+        cur = conn.cursor()
         if condition:
-            cursor.execute(query, condition)
+            cur.execute(query, condition)
         else:
-            cursor.execute(query)
-        result = cursor.fetchall()
-        print('Query executed successfully')
+            cur.execute(query)
+        result = cur.fetchall()
+        print(f'Query executed successfully to the {table} table')
+        cur.close()
         return result #returns list of tuples
-    except Error as e:
-        print(f'The error "{e}" ocurred')
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(f'The error "{error}" ocurred when trying to query the {table} table')
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def get_row_id(rowname, table):
+    '''Get row name id.'''
+    select_rowname_id = f'SELECT id FROM {table} WHERE name = %s;'
+    rowname_id = execute_query(select_rowname_id, (rowname,), table)
+    rowname_id = rowname_id[0][0] #access int inside tuple inside list
+
+    return rowname_id
 
 
 def manage_multiple_records(insert_table,
                             list_of_insertions,
-                            table,
-                            connection_to_db=connection):
+                            table):
 
-    cursor = connection_to_db.cursor()
-
+    conn = None
     try:
-        cursor.executemany(insert_table, list_of_insertions)
-        connection_to_db.commit()
-        rc = cursor.rowcount
+        # read connection parameters
+        params = config()
+        # connect to the PostgreSQL database
+        conn = psycopg2.connect(**params)
+        # create new cursor
+        cur = conn.cursor()
+        cur.executemany(insert_table, list_of_insertions)
+        rc = cur.rowcount
+        conn.commit()
         print(f'A total of {rc} records inserted successfully into the {table} table')
-    except Error as e:
-        print(f'The error "{e}" ocurred when trying to insert data to the {table} table')
+	# close the communication with the database
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(f'The error "{error}" ocurred when trying to insert data to the {table} table')
+    finally:
+        # database connection closed
+        if conn is not None:
+            conn.close()
 
-def get_image_id(image_name):
-    '''Get image id.'''
-    select_image_id = 'SELECT id FROM images WHERE name = ?;'
-    image_id = execute_query(select_image_id, (image_name,))
-    image_id = image_id[0][0] #access int inside tuple inside list
 
-    return image_id
-
-def get_model_id(model_name):
-    '''Get model id.'''
-    select_model_id = 'SELECT id FROM models WHERE name = ?;'
-    model_id = execute_query(select_model_id, (model_name,))
-    model_id = model_id[0][0] #access int inside tuple inside list
-
-    return model_id
-
-def insert_image_model_data(model_name, image_name):
-    '''Insert image and model data into table image_model.'''
-    image_id = get_image_id(image_name)
-    model_id = get_model_id(model_name)
-    image_model_list = [(image_id, model_id)]
-    
-    insert_image_model = '''
-    INSERT INTO
-      image_model (image_id, model_id)
-    VALUES (?,?);
-    '''
-    manage_multiple_records(insert_image_model, image_model_list, 'image_model')
-
-def get_image_model_id(model_name, image_name):
-    '''Get image_model id.'''
-    image_id = get_image_id(image_name)
-    model_id = get_model_id(model_name)
-    select_image_model_id = 'SELECT id FROM image_model \
-                             WHERE image_id = ? \
-                             AND model_id = ?;'
-    image_model_id = execute_query(select_image_model_id, (image_id, model_id))
-    image_model_id = image_model_id[0][0] #access int inside tuple inside list
-
-    return image_model_id
-
-def insert_multiple_detections(model_name, image_name, detections):
+def insert_multiple_detections(image_name, model_name, detections):
     '''Insert detections into detections table.'''
-    image_model_id = get_image_model_id(model_name, image_name)
+    image_id = get_row_id(image_name, 'images')
+    model_id = get_row_id(model_name, 'models')
     detections_list = []
     item = None
     for detection in detections:
-        item = (image_model_id,
+        item = (image_id,
+                model_id,
                 detection['object'],
                 round(detection['coordinates']['left'], 3),
                 round(detection['coordinates']['right'], 3),
@@ -119,8 +106,8 @@ def insert_multiple_detections(model_name, image_name, detections):
 
     insert_detections = '''
     INSERT INTO
-      detections (img_mdl_id, class_name, bbox_left, bbox_right, 
-                  bbox_bottom, bbox_top, score)
-    VALUES (?,?,?,?,?,?,?);
+      detections(image_id, model_id, class_name, bbox_left, 
+                 bbox_right, bbox_bottom, bbox_top, score)
+    VALUES(%s,%s,%s,%s,%s,%s,%s,%s);
     '''
     manage_multiple_records(insert_detections, detections_list, 'detections')

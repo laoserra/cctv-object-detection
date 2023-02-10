@@ -247,8 +247,6 @@ def show_inference(host, image_path, model_name):
         config.PREC_REC_THRESHOLD,
         model_name)
 
-    # write initial attributes to image_model table in detections db
-    db.insert_image_model_data(model_name, image_name)
     # only write detections if existent
     if detections:
         #score threshold used is highest obtained for a monochrome image
@@ -256,9 +254,9 @@ def show_inference(host, image_path, model_name):
         if (model_name == 'faster_rcnn_1024_parent' and
             detections[0]['score'] > 0.00013179912639316171):
             # write detections to detections db
-            db.insert_multiple_detections(model_name, image_name, detections)
+            db.insert_multiple_detections(image_name, model_name, detections)
         elif model_name == 'yolov4_9_objs':
-            db.insert_multiple_detections(model_name, image_name, detections)
+            db.insert_multiple_detections(image_name, model_name, detections)
 
 
 if __name__ == '__main__':

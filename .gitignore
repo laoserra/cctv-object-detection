@@ -18,3 +18,4 @@ models/faster_rcnn_1024_parent/
 models/yolov4_9_objs/
 output_folder/.cache/
 output_folder/.sdb/
+detections.ini
