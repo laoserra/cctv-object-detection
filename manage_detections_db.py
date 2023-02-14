@@ -23,7 +23,7 @@ def config(filename='detections.ini', section='postgresql'):
 
 
 # Execute a query to the database
-def execute_query(query, condition=None, table):
+def execute_query(table, query, condition=None):
     '''Query tables in the database.'''
 
     conn = None
@@ -51,10 +51,10 @@ def execute_query(query, condition=None, table):
             conn.close()
 
 
-def get_row_id(rowname, table):
+def get_row_id(table, rowname):
     '''Get row name id.'''
     select_rowname_id = f'SELECT id FROM {table} WHERE name = %s;'
-    rowname_id = execute_query(select_rowname_id, (rowname,), table)
+    rowname_id = execute_query(table, select_rowname_id, (rowname,))
     rowname_id = rowname_id[0][0] #access int inside tuple inside list
 
     return rowname_id
@@ -88,8 +88,8 @@ def manage_multiple_records(insert_table,
 
 def insert_multiple_detections(image_name, model_name, detections):
     '''Insert detections into detections table.'''
-    image_id = get_row_id(image_name, 'images')
-    model_id = get_row_id(model_name, 'models')
+    image_id = get_row_id('images', image_name)
+    model_id = get_row_id('models', model_name)
     detections_list = []
     item = None
     for detection in detections:

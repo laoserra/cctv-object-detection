@@ -20,9 +20,9 @@ CREATE TABLE images(
 );
 
 CREATE TABLE detections (
+    id serial PRIMARY KEY,
     image_id INTEGER NOT NULL,
     model_id INTEGER NOT NULL,
-    PRIMARY KEY(image_id, model_id),
     class_name VARCHAR(30) NOT NULL,
     bbox_left REAL,
     bbox_right REAL,

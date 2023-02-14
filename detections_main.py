@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # base imports
 from PIL import Image
 import cv2
@@ -257,6 +259,8 @@ def show_inference(host, image_path, model_name):
             db.insert_multiple_detections(image_name, model_name, detections)
         elif model_name == 'yolov4_9_objs':
             db.insert_multiple_detections(image_name, model_name, detections)
+        else:
+            print(f'model "{model_name}" does not exist in the database')
 
 
 if __name__ == '__main__':
