@@ -1,54 +1,30 @@
 #!/usr/bin/env python3
 
-from configparser import ConfigParser
 import psycopg2
 
+conn_str = "host=localhost dbname=detections user=postgres"
 
-def config(filename='detections.ini', section='postgresql'):
-    # create a parser
-    parser = ConfigParser()
-    # read config file
-    parser.read(filename)
-
-    # get section, default to postgresql
-    db = {}
-    if parser.has_section(section):
-        params = parser.items(section)
-        for param in params:
-            db[param[0]] = param[1]
-    else:
-        raise Exception(f'Section {section} not found in the {filename} file')
-
-    return db
-
-
-# Execute a query to the database
 def execute_query(table, query, condition=None):
     '''Query tables in the database.'''
-
-    conn = None
     try:
-        # read connection parameters
-        params = config()
         # connect to the PostgreSQL database
-        conn = psycopg2.connect(**params)
+        connection = psycopg2.connect(conn_str)
         # create new cursor
-        cur = conn.cursor()
+        cursor = connection.cursor()
         if condition:
-            cur.execute(query, condition)
+            cursor.execute(query, condition)
         else:
-            cur.execute(query)
-        result = cur.fetchall()
+            cursor.execute(query)
+        result = cursor.fetchall()
         print(f'Query executed successfully to the {table} table')
-        cur.close()
-        return result #returns list of tuples
-
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(f'The error "{error}" ocurred when trying to query the {table} table')
-
+        return result #return list of tuples
+    except (Exception, Error) as error:
+        print(f'Error while connecting to table {table}:', error)
     finally:
-        if conn is not None:
-            conn.close()
+	# close the communication with the database
+        if connection:
+            cursor.close()
+            connection.close()
 
 
 def get_row_id(table, rowname):
@@ -63,27 +39,19 @@ def get_row_id(table, rowname):
 def manage_multiple_records(insert_table,
                             list_of_insertions,
                             table):
-
-    conn = None
     try:
-        # read connection parameters
-        params = config()
-        # connect to the PostgreSQL database
-        conn = psycopg2.connect(**params)
-        # create new cursor
-        cur = conn.cursor()
-        cur.executemany(insert_table, list_of_insertions)
-        rc = cur.rowcount
-        conn.commit()
-        print(f'A total of {rc} records inserted successfully into the {table} table')
-	# close the communication with the database
-        cur.close()
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(f'The error "{error}" ocurred when trying to insert data to the {table} table')
+        connection = psycopg2.connect(conn_string)
+        cursor = connection.cursor()
+        cursor.executemany(insert_table, list_of_insertions)
+        rc = cursor.rowcount
+        connection.commit()
+        print(f'A total of {rc} records inserted into the {table} table')
+    except (Exception, Error) as error:
+        print(f'Error while connecting to table {table}:', error)
     finally:
-        # database connection closed
-        if conn is not None:
-            conn.close()
+        if connection:
+            cursor.close()
+            connection.close()
 
 
 def insert_multiple_detections(image_name, model_name, detections):

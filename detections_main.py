@@ -17,6 +17,7 @@ import yolo.core.utils as utils
 from yolo.core.yolov4 import filter_boxes
 from tensorflow.python.saved_model import tag_constants
 
+
 ################################################################################
 #                              Model preparation
 ################################################################################
