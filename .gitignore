@@ -17,6 +17,7 @@ output_folder/.sdb/
 .ash_history
 .java/
 .sdb/
+.cache/
 general_utils/.ash_history
 general_utils/.sdb/
 
