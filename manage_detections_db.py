@@ -18,7 +18,7 @@ def execute_query(table, query, condition=None):
         result = cursor.fetchall()
         print(f'Query executed successfully to the {table} table')
         return result #return list of tuples
-    except (Exception, Error) as error:
+    except Exception as error:
         print(f'Error while connecting to table {table}:', error)
     finally:
 	# close the communication with the database
@@ -40,13 +40,13 @@ def manage_multiple_records(insert_table,
                             list_of_insertions,
                             table):
     try:
-        connection = psycopg2.connect(conn_string)
+        connection = psycopg2.connect(conn_str)
         cursor = connection.cursor()
         cursor.executemany(insert_table, list_of_insertions)
         rc = cursor.rowcount
         connection.commit()
         print(f'A total of {rc} records inserted into the {table} table')
-    except (Exception, Error) as error:
+    except Exception as error:
         print(f'Error while connecting to table {table}:', error)
     finally:
         if connection:
