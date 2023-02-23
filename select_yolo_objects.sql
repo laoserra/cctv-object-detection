@@ -1,13 +1,11 @@
-CREATE VIEW v_yolo_objects
-AS
+/*
+images that exist in the table detections but whose score is less than 
+below, are also present in the selection although with d.class_name and 
+d.score set to null
+*/
 SELECT i.name AS image, i.warnings, d.class_name, d.score
 FROM images i
-LEFT JOIN image_model im
-ON i.id = im.image_id
-LEFT JOIN models m
-ON im.model_id = m.id
 LEFT JOIN detections d
-ON d.img_mdl_id = im.id
-WHERE m.name = 'yolov4_9_objs'
-AND (d.score >= 0.005 OR im.id NOT IN (SELECT img_mdl_id  FROM detections))
-OR i.warnings = 1
+    ON i.id = d.image_id
+    AND d.score > 0.1
+    AND d.model_id IN (SELECT id FROM models WHERE name = 'yolov4_9_objs')

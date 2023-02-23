@@ -9,6 +9,10 @@ __pycache__/
 *.pyc
 *.lock
 *.tmp
+.ash_history
+.java/
+.sdb/
+.cache/
 input_folder/
 models/faster_rcnn_1024_parent/
 models/yolov4_9_objs/
@@ -20,4 +24,4 @@ output_folder/.sdb/
 .cache/
 general_utils/.ash_history
 general_utils/.sdb/
-
+detections.ini

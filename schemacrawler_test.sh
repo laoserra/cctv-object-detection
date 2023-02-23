@@ -1,13 +1,13 @@
 docker run \
--v "$(pwd)":/home/schcrwlr \
---rm -it \
+--rm -it --network=host \
+-v "$(pwd):/home/schcrwlr" \
 schemacrawler/schemacrawler:v16.19.7 \
 /opt/schemacrawler/bin/schemacrawler.sh \
 --server=postgresql \
---database=detections \
---schemas=public \
+--host=127.0.0.1 \
 --user=postgres \
---password=serra \
+--password= \
+--database=detections \
 --info-level=standard \
 --command=schema \
---output-file=detections_schema.png
+--output-file=schema_postgres.png \
