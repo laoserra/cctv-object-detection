@@ -12,7 +12,9 @@ CREATE TABLE models(
 
 CREATE TABLE images(
     id serial PRIMARY KEY,
-    unix_time_insertion INTEGER,
+    process_tstz TIMESTAMPTZ,
+    image_tstz TIMESTAMPTZ,
+    image_ref VARCHAR(30),
     name VARCHAR(80) NOT NULL,
     width INTEGER,
     height INTEGER,
@@ -23,7 +25,7 @@ CREATE TABLE detections (
     id serial PRIMARY KEY,
     image_id INTEGER NOT NULL,
     model_id INTEGER NOT NULL,
-    class_name VARCHAR(30) NOT NULL,
+    class_name VARCHAR(30),
     bbox_left REAL,
     bbox_right REAL,
     bbox_bottom REAL,

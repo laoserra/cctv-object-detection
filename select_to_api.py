@@ -30,7 +30,7 @@ def execute_query(query):
 
 def get_data_api(score, model):
     select_data = f'''
-    SELECT i.unix_time_insertion AS proc_timestamp, i.name AS image, 
+    SELECT i.unix_time_insertion AS processing_tstz, i.name AS image, 
            i.warnings, d.class_name, d.score
     FROM images i
     LEFT JOIN detections d
@@ -39,10 +39,10 @@ def get_data_api(score, model):
         AND d.model_id IN (SELECT id FROM models WHERE name = '{model}');
     '''
     data = execute_query(select_data)
-    header = [data[0][0], 'image_timestamp', 'image_id']
+    header = [data[0][0], 'image_tstz', 'image_ref']
     header = header + data[0][2:]
+
     parsed_data = [tuple(header)]
-    
     for item in data[1]:
         splitted_image = item[1].split('_') #returns a list
         #floor division. Closer to reality due to delay in getting timestamp
