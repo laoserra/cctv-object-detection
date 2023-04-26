@@ -19,7 +19,6 @@ models/yolov4_9_objs/
 output_folder/.cache/
 output_folder/.sdb/
 .ash_history
-.java/
 .sdb/
 .cache/
 general_utils/.ash_history

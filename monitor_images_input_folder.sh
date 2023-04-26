@@ -22,13 +22,13 @@ do
         #number of seconds since the epoch
         current_time=$(date +%s)
         image_time_ms="$(awk -F_ '{split($0, arr); print arr[1]}' <<< ${filename})"
-        image_ref="$(awk -F_ '{split($0, arr); print arr[2]}' <<< ${filename})"
+        camera_ref="$(awk -F_ '{split($0, arr); print arr[2]}' <<< ${filename})"
         #floor division. Closer to reality due to delay in getting cctv timestamp
         image_time=$(($image_time_ms / 1000))
-        image_id=$(psql -qtAX -U $user -h $host -d $db -c "INSERT INTO images (process_tstz,image_tstz,
-                                                                               image_ref,name,width,height) 
+        image_id=$(psql -qtAX -U $user -h $host -d $db -c "INSERT INTO images (image_proc,image_capt,
+                                                                               camera_ref,name,width,height) 
                                                            VALUES(to_timestamp($current_time),to_timestamp($image_time),
-                                                                               '$image_ref','$filename',$width,$height) 
+                                                                               '$camera_ref','$filename',$width,$height) 
                                                            RETURNING id;")
         if [ "$width" -eq 550 ] && [ "$height" -eq 367 ]; then
             echo ---------- image $filename: Camera in use by GOC -------------------------------

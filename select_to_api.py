@@ -29,18 +29,18 @@ def execute_query(query):
 def get_data_api(score, model):
     '''Query database to provide data for the api.
 
-    The model should be set to name of desired model.'''
+       Set desired score threshold and model.'''
 
     #SQL query
     select_data = f'''
-    SELECT i.process_tstz, i.image_tstz, i.image_ref, 
+    SELECT i.image_proc, i.image_capt, i.camera_ref, 
            i.warnings, d.class_name, d.score
     FROM images i
     LEFT JOIN detections d
         ON i.id = d.image_id
         AND d.score > {score}
         AND d.model_id IN (SELECT id FROM models WHERE name = '{model}')
-    WHERE i.image_tstz::date = current_date - INTEGER '1';
+    WHERE i.image_capt::date = current_date - INTEGER '1';
     '''
     data = execute_query(select_data)
 

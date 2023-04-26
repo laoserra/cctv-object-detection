@@ -12,9 +12,9 @@ CREATE TABLE models(
 
 CREATE TABLE images(
     id serial PRIMARY KEY,
-    process_tstz TIMESTAMPTZ,
-    image_tstz TIMESTAMPTZ,
-    image_ref VARCHAR(30),
+    image_proc TIMESTAMPTZ,
+    image_capt TIMESTAMPTZ,
+    camera_ref VARCHAR(30),
     name VARCHAR(80) NOT NULL,
     width INTEGER,
     height INTEGER,
