@@ -7,6 +7,7 @@ import sys
 
 conn_str = "host=localhost dbname=detections user=postgres"
 
+
 def execute_query(query):
     try:
         # connect to the PostgreSQL database
@@ -16,11 +17,11 @@ def execute_query(query):
         cursor.execute(query)
         header = [descr[0] for descr in cursor.description]
         result = cursor.fetchall()
-        return header, result #returns 2 lists; 2nd is a tuples' list
+        return header, result  # returns 2 lists; 2nd is a tuples' list
     except Exception as error:
         print('Error while connecting to database:', error)
     finally:
-	# close the communication with the database
+        # close the communication with the database
         if connection:
             cursor.close()
             connection.close()
@@ -31,9 +32,9 @@ def get_data_api(score, model):
 
        Set desired score threshold and model.'''
 
-    #SQL query
+    # SQL query
     select_data = f'''
-    SELECT i.image_proc, i.image_capt, i.camera_ref, 
+    SELECT i.image_proc, i.image_capt, i.camera_ref,
            i.warnings, d.class_name, d.score
     FROM images i
     LEFT JOIN detections d

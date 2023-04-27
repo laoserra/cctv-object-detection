@@ -4,6 +4,7 @@ import psycopg2
 
 conn_str = "host=localhost dbname=detections user=postgres"
 
+
 def execute_query(table, query, condition=None):
     '''Query tables in the database.'''
     try:
@@ -17,11 +18,11 @@ def execute_query(table, query, condition=None):
             cursor.execute(query)
         result = cursor.fetchall()
         print(f'Query executed successfully to the {table} table')
-        return result #return list of tuples
+        return result  # return list of tuples
     except Exception as error:
         print(f'Error while connecting to table {table}:', error)
     finally:
-	# close the communication with the database
+        # close the communication with the database
         if connection:
             cursor.close()
             connection.close()
@@ -31,7 +32,7 @@ def get_row_id(table, rowname):
     '''Get row name id.'''
     select_rowname_id = f'SELECT id FROM {table} WHERE name = %s;'
     rowname_id = execute_query(table, select_rowname_id, (rowname,))
-    rowname_id = rowname_id[0][0] #access int inside tuple inside list
+    rowname_id = rowname_id[0][0]  # access int inside tuple inside list
 
     return rowname_id
 
@@ -74,7 +75,7 @@ def insert_multiple_detections(image_name, model_name, detections):
 
     insert_detections = '''
     INSERT INTO
-      detections(image_id, model_id, class_name, bbox_left, 
+      detections(image_id, model_id, class_name, bbox_left,
                  bbox_right, bbox_bottom, bbox_top, score)
     VALUES(%s,%s,%s,%s,%s,%s,%s,%s);
     '''
