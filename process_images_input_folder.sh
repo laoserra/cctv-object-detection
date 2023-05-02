@@ -19,15 +19,21 @@ do
     width=$(identify -format "%w" $file)
     height=$(identify -format "%h" $file)
     #number of seconds since the epoch
-    unix_time=$(date +%s)
-    psql -U $user -h $host -d $db -c "INSERT INTO images (unix_time_insertion,name,width,height) 
-                                      VALUES($unix_time,'$filename',$width,$height);"
+    current_time=$(date +%s)
+    image_time_ms="$(awk -F_ '{split($0, arr); print arr[1]}' <<< ${filename})"
+    camera_ref="$(awk -F_ '{split($0, arr); print arr[2]}' <<< ${filename})"
+    #floor division. Closer to reality due to delay in getting cctv timestamp
+    image_time=$(($image_time_ms / 1000))
+    image_id=$(psql -qtAX -U $user -h $host -d $db -c "INSERT INTO images (image_proc,image_capt,
+                                                                           camera_ref,name,width,height) 
+                                                       VALUES(to_timestamp($current_time),to_timestamp($image_time),
+                                                                           '$camera_ref','$filename',$width,$height) 
+                                                       RETURNING id;")
     if [ "$width" -eq 550 ] && [ "$height" -eq 367 ]; then
         echo ---------- image $filename: Camera in use by GOC -------------------------------
         psql -U $user -h $host -d $db -c "UPDATE images
                                           SET warnings = 1
-                                          WHERE unix_time_insertion = $unix_time
-                                          AND name = '$filename';"
+                                          WHERE id = $image_id;"
         mv $file $dir_archive
     else
         echo ---------- executing faster_rcnn_1024_parent model on image $filename ---------- 

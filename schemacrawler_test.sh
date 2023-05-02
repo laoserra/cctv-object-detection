@@ -6,7 +6,7 @@ schemacrawler/schemacrawler:v16.19.7 \
 --server=postgresql \
 --host=127.0.0.1 \
 --user=postgres \
---password= \
+--password= \  # need to set password here beforehand
 --database=detections \
 --info-level=standard \
 --command=schema \
