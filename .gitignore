@@ -24,3 +24,5 @@ output_folder/.sdb/
 general_utils/.ash_history
 general_utils/.sdb/
 detections.ini
+daily_reports/
+temp/
