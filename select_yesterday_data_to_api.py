@@ -13,7 +13,6 @@ classes_yolo = ['car', 'pedestrian', 'cyclist',
 yesterday = dt.datetime.now() - dt.timedelta(days=1)
 yesterday = yesterday.strftime('%Y%m%d')
 
-
 conn_str = "host=localhost dbname=detections user=postgres"
 
 
@@ -55,38 +54,27 @@ def select_yesterday_data(score, model):
     '''
     data = execute_query(select_data)
 
-    # prepend header to list of selected records
-    #data[1][:0] = [tuple(data[0])]
-
     return data
 
-    '''
-    with open(f'report_{model}.csv', 'w') as fp:
-        write = csv.writer(fp)
-        write.writerows(data[1])
-    '''
 
 def clean_data(data):
 
     df = pd.DataFrame(data[1], columns=data[0])
     print('read data: \n', df.head())
-    print('read  data: \n', df.shape)
+    print('read  data: ', df.shape)
     # remove empty rows in which all fields are empty
     df = df.dropna(how='all')
     print('dropna: \n', df.head())
-    print('dropna: \n', df.shape)
-    # remove lines with crowd object in it. TO BE REPLACED IN SQL
-    #df = df[df.class_name != 'crowd']
-    #print('delete crowd rows :', df.shape)
-    # delete duplicated rows, including bboxes
+    print('dropna: ', df.shape)
     df = df.drop_duplicates()
-    print('drop duplicates: \n', df.shape)
     print('drop duplicates: \n', df.head())
+    print('drop duplicates: ', df.shape)
     # remove bboxes columns (only needed to remove duplicates in previous step)
     df = df[[col for col in df.columns if col[:4] != 'bbox']]
-    print('removed bboxes columns: ', df.head())
+    print('removed bboxes columns: \n', df.head())
 
     return df
+
 
 def group_by_class_name(df_clean, model):
 
@@ -95,7 +83,7 @@ def group_by_class_name(df_clean, model):
         model_name = 'yolo'
     else:
         classes = classes_tf2
-        model_name = tf2
+        model_name = 'tf2'
 
     df = df_clean
     # filter data where detections are absent
@@ -116,8 +104,8 @@ def group_by_class_name(df_clean, model):
     # transpose class_name to columns with counts
     df_agg = df_agg.size().unstack(fill_value=0).reset_index()
     print('df_agg: \n', df_agg)
-    print(df_agg.columns)
-    print('df_agg.columns[4:]: \n', df_agg.columns[4:])
+    print('df_agg.columns: ', df_agg.columns)
+    print('df_agg.columns[4:]: ', df_agg.columns[4:])
     # check for missing classes of objects and update df_agg
     df_agg_classes = df_agg.columns[4:]
     print('len: ', len(df_agg.columns[4:]))
@@ -139,18 +127,21 @@ def group_by_class_name(df_clean, model):
     # reorder columns
     columns_order = list(df.columns[:3]) + classes + ['warnings']
     df = df.reindex(columns = columns_order)
-    # insert name of model DO THIS AT QUERY DB STEP?
+    # insert name of model
     df.insert(3, 'model_name', model_name)
     print('df with model: \n', df)
+
+    return model_name, df
 
 def main(score, model):
     data = select_yesterday_data(score, model)
     df_clean = clean_data(data)
-    group_by_class_name(df_clean, model)
+    model_name, df = group_by_class_name(df_clean, model)
+    report = f'./daily_reports/cctv-report-v2-{model_name}-{yesterday}.csv.gz'
+    df.to_csv(report, index=False, compression='gzip')
 
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2])
     #main(0.5, 'yolov4_9_objs')
-    #clean_data(data)
     #get_data_api(0.5, 'faster_rcnn_1024_parent')
