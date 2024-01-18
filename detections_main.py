@@ -253,10 +253,11 @@ def show_inference(host, image_path, model_name):
 
     # only write detections if existent
     if detections:
-        # score threshold used is highest obtained for a monochrome image
+        # threshold score used is highest obtained for a monochrome image
         # items in detections are ordered by score in descending order
+        # threshold score may vary in different machines
         if (model_name == 'faster_rcnn_1024_parent' and
-                detections[0]['score'] > 0.00013179912639316171):
+                detections[0]['score'] > 0.0001317993737757206):
             # write detections to detections db
             db.insert_multiple_detections(image_name, model_name, detections)
         elif model_name == 'yolov4_9_objs':

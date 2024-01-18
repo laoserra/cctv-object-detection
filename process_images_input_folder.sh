@@ -7,9 +7,8 @@ dir_archive=$(pwd)/archive_folder
 user=postgres
 host=localhost
 db=detections
-source /home/lserra/python-virtual-environments/serving/bin/activate
-#source /home/datasci/.virtualenvs/video/bin/activate #ubdc2 server
-#source /home/datasci/.virtualenvs/serving/bin/activate #ubdc3 server
+
+source /home/datasci/.virtualenvs/serving/bin/activate #ubdc3 server
 
 start=`date +%s`
 

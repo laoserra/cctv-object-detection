@@ -16,8 +16,8 @@ objects_of_interest = ['bicycle',
 # path to images with bounding boxes
 OUTPUT_FOLDER = './output_folder/'
 
-# PATH to existent database
-PATH_DB = OUTPUT_FOLDER + 'detections.db'
+# PATH to existent database CHECK THIS AND DELETE!
+#PATH_DB = OUTPUT_FOLDER + 'detections.db'
 
 # path to archive processed images
 PATH_TO_ARCHIVE = './archive_folder/'
