@@ -26,3 +26,4 @@ output_folder/.sdb/
 general_utils/.ash_history
 general_utils/.sdb/
 detections.ini
+camera_fault.py
