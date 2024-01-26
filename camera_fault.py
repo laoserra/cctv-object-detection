@@ -17,7 +17,6 @@ def main(file_path):
     data = pd.read_csv(file_path)
     report = f'{file_path}'
     data.loc[data['camera_ref']=='C134', 'warnings'] = 3
-    data.loc[data['camera_ref']=='A66', 'warnings'] = 7
     data.to_csv(report, index=False, compression='gzip')
 
 
