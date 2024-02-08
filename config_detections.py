@@ -17,7 +17,7 @@ objects_of_interest = ['bicycle',
 OUTPUT_FOLDER = './output_folder/'
 
 # PATH to existent database CHECK THIS AND DELETE!
-#PATH_DB = OUTPUT_FOLDER + 'detections.db'
+# PATH_DB = OUTPUT_FOLDER + 'detections.db'
 
 # path to archive processed images
 PATH_TO_ARCHIVE = './archive_folder/'
@@ -49,10 +49,14 @@ HOST = 'localhost'
 
 # category_index to use depends on the model
 def category_index_to_use(model_name):
+    """Set category index to use.
+
+    Model dependent.
+    """
     if model_name == 'faster_rcnn_1024_parent':
         category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS)
     else:  # it's a yolo model
         category_index = load_class_names(PATH_TO_COCO_LABELS)
 
     return category_index
-################################################################################
+###############################################################################

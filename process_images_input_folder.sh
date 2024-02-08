@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Bash orchestrator, developed by Luis Serra, UBDC, 2023
+# Script similar to "monitor_images_input_folder.sh".
+# To be used manually to process images in the input folder.
+
 dir_in=$(pwd)/input_folder
 script_detections=$(pwd)/detections_main.py
 dir_logs=$(pwd)/logs

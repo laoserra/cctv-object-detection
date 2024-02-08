@@ -15,6 +15,7 @@ conn_str = "host=localhost dbname=detections user=postgres"
 
 
 def execute_query(query, params=None):
+    """Executes a query to the database."""
     try:
         # connect to the PostgreSQL database
         with psycopg2.connect(conn_str) as connection:
@@ -30,9 +31,10 @@ def execute_query(query, params=None):
 
 
 def select_yesterday_data(score, model):
-    '''Query database to provide data for the api.
+    """Query database to provide data for the api.
 
-       Set desired score threshold and model.'''
+    Set desired score threshold and model.
+    """
 
     # SQL query
     select_data = '''
@@ -53,7 +55,7 @@ def select_yesterday_data(score, model):
 
 
 def clean_data(data):
-
+    """Perform basic cleaning to data."""
     df = pd.DataFrame(data[1], columns=data[0])
     print('read data: \n', df.head())
     print('read  data: ', df.shape)
@@ -72,6 +74,10 @@ def clean_data(data):
 
 
 def group_by_class_name(df_clean, model):
+    """Converts detections to counts.
+
+    Format required by the CCTV API.
+    """
 
     if model == 'yolov4_9_objs':
         classes = classes_yolo

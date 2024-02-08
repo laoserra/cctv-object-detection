@@ -6,7 +6,7 @@ conn_str = "host=localhost dbname=detections user=postgres"
 
 
 def execute_query(table, query, condition=None):
-    '''Query tables in the database.'''
+    """Query tables in the database."""
     try:
         # connect to the PostgreSQL database
         connection = psycopg2.connect(conn_str)
@@ -29,7 +29,7 @@ def execute_query(table, query, condition=None):
 
 
 def get_row_id(table, rowname):
-    '''Get row name id.'''
+    """Get row name id."""
     select_rowname_id = f'SELECT id FROM {table} WHERE name = %s;'
     rowname_id = execute_query(table, select_rowname_id, (rowname,))
     rowname_id = rowname_id[0][0]  # access int inside tuple inside list
@@ -40,6 +40,7 @@ def get_row_id(table, rowname):
 def manage_multiple_records(insert_table,
                             list_of_insertions,
                             table):
+    """Inserts a list of records into a table."""
     try:
         connection = psycopg2.connect(conn_str)
         cursor = connection.cursor()
@@ -56,7 +57,7 @@ def manage_multiple_records(insert_table,
 
 
 def insert_multiple_detections(image_name, model_name, detections):
-    '''Insert detections into detections table.'''
+    """Insert detections into detections table."""
     image_id = get_row_id('images', image_name)
     model_id = get_row_id('models', model_name)
     detections_list = []
