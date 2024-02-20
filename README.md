@@ -32,8 +32,9 @@ There are two options to install nvidia drivers:
 Citing NVIDIA official docs: *The distribution-independent package has the advantage of working across a wider set of Linux distributions, but does not update the distribution’s native package management system. The distribution-specific packages interface with the distribution’s native package management system. It is recommended to use the distribution-specific packages, where possible.*
 
 Following NVIDIA's advice, we suggest going with the distribution-specific package, in our case, a **deb** package. Installation steps:
-1. Check the [pre installation actions](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#pre-installation-actions) (optional).
-2. [Install cuda drivers](https://docs.nvidia.com/cuda/cuda-quick-start-guide/#ubuntu). Regarding the development environment step, only the PATH variable is needed:
+1. Check CUDA and Python versions required for tensorflow version [here](https://www.tensorflow.org/install/source#gpu).
+1. Check the [pre-installation actions](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#pre-installation-actions) (optional).
+2. Install [cuda drivers](https://docs.nvidia.com/cuda/cuda-quick-start-guide/#ubuntu) according to tensorflow version to be installed (see requirements' file below). Regarding the development environment step, only the PATH variable is needed:
 ```bash
 export PATH=/usr/local/<cuda-version>/bin${PATH:+:${PATH}}
 ```
@@ -137,17 +138,22 @@ psql -U postgres -h localhost -f ./general_utils/create_detection_tables.sql
 ```
 3. Create the following sub-directories inside the project directory:
 ```bash
-mkdir archive_folder daily_reports input_folder logs\analyses logs\aws logs\yesterday output_folder
+mkdir archive_folder daily_reports input_folder output_folder logs && mkdir logs/analyses logs/aws logs/yesterday 
 ```
 4. Download [zip file](https://gla-my.sharepoint.com/:u:/g/personal/luis_serra_glasgow_ac_uk/EVMXV3d6wGJOiIQo_eYlYagB8Zm1X33Sb9jWkfnnQiA6Qg?e=gvhc9s) with models, pip requirements and a test image. Unzip file and copy directories `faster_rcnn_1024_parent/` and `yolov4_9_objs/` to inside the project `models/` directory.
 
 5. Create a Python Virtual Environment for the project:
 ```bash
-python3 -m venv .venv #  or any other name of your choose
+# create virtual environment folder
+mkdir ~/.virtualenvs # or any other name of your choose
+# create python virtual environment
+python3 -m venv ~/.virtualenvs/cctv # or any other name of your choose
 ```
+> [!WARNING]
+> It is advisable to use other Python virtual environment for a professional deployment, such as [virtualenv](https://virtualenv.pypa.io/en/latest/). Other options exist though.
 
 6. Install Python packages
-In the zipi file there's a `requirement.txt` file for Ubuntu 20.04. Run the following command in the python virtual environment created:
+In the zip file there's a `requirement.txt` file for Ubuntu 20.04. Run the following command in the python virtual environment created:
 ```bash
 # activate the project virtual environment
 source .venv/bin/activate
@@ -186,9 +192,14 @@ sudo apt install imagemagick.
 > [!NOTE]
 > Requirements may differ for diifferent Ubuntu releases.
 
-11. Test system with a couple of test images (monitor and process bash files).
+11. Run monitor bash file and tensorflow serving docker container:
+```bash
+./monitor_images_input_folder.sh
+./reboot_monitor.sh
+```
+12. Test system with a couple of test images (monitor and process bash files).
 
-12. Run one colour image `dark_yellow_canvas.jpg` provided, with tf2 model. Check maximum confidence score obtained in detections list. Afterwards, replace following threshold number in `detections_main.py` file:
+13. Run one colour image `dark_yellow_canvas.jpg` provided, with tf2 model. Check maximum confidence score obtained in detections list. Afterwards, replace following threshold number in `detections_main.py` file:
 ```python
 detections[0]['score'] > 0.0001317993737757206):
 ```
