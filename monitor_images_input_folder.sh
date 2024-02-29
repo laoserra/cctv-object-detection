@@ -51,3 +51,4 @@ do
             mv $file $dir_archive
         fi
     fi
+done
