@@ -15,6 +15,7 @@ conn_str = "host=localhost dbname=detections user=postgres"
 
 
 def execute_query(query, params=None):
+    """Executes a query to the database."""
     try:
         # connect to the PostgreSQL database
         with psycopg2.connect(conn_str) as connection:
@@ -30,9 +31,10 @@ def execute_query(query, params=None):
 
 
 def select_yesterday_data(score, model):
-    '''Query database to provide data for the api.
+    """Query database to provide data for the api.
 
-       Set desired score threshold and model.'''
+    Set desired score threshold and model.
+    """
 
     # SQL query
     select_data = '''
@@ -53,18 +55,29 @@ def select_yesterday_data(score, model):
 
 
 def clean_data(data):
-
+    """Perform basic cleaning to data."""
     df = pd.DataFrame(data[1], columns=data[0])
+    print('read data: \n', df.head())
+    print('read  data: ', df.shape)
     # remove empty rows in which all fields are empty
     df = df.dropna(how='all')
+    print('dropna: \n', df.head())
+    print('dropna: ', df.shape)
     df = df.drop_duplicates()
+    print('drop duplicates: \n', df.head())
+    print('drop duplicates: ', df.shape)
     # remove bboxes columns (only needed to remove duplicates in previous step)
     df = df[[col for col in df.columns if not col.startswith('bbox')]]
+    print('removed bboxes columns: \n', df.head())
 
     return df
 
 
 def group_by_class_name(df_clean, model):
+    """Converts detections to counts.
+
+    Format required by the CCTV API.
+    """
 
     if model == 'yolov4_9_objs':
         classes = classes_yolo
@@ -81,6 +94,7 @@ def group_by_class_name(df_clean, model):
         # drop columns 'score' and 'class_name'
         df_nan = df_nan[['image_proc', 'image_capt', 'camera_ref', 'warnings']]
         nan = 1
+        print('df_nan: \n', df_nan)
 
     # group detections by image attributes and class object
     df_agg = df.groupby(['image_proc',
@@ -90,21 +104,28 @@ def group_by_class_name(df_clean, model):
                          'class_name'])
     # transpose class_name to columns with counts
     df_agg = df_agg.size().unstack(fill_value=0).reset_index()
+    print('df_agg: \n', df_agg)
+    print('df_agg.columns: ', df_agg.columns)
+    print('df_agg.columns[4:]: ', df_agg.columns[4:])
     # check for missing classes of objects and update df_agg
     df_agg_classes = df_agg.columns[4:]
+    print('len: ', len(df_agg.columns[4:]))
 
     if len(df_agg_classes) < len(classes):
         missing_classes = list(set(classes) - set(df_agg_classes))
+        print('missing_classes ', missing_classes)
         for col in missing_classes:
             df_agg[col] = 0
 
     # concatenate df_nan with df_agg if df_nan existent
     if nan:
         df = pd.concat([df_nan, df_agg])
+        print('concatenated df: \n', df)
         for col in classes:
             df[col] = df[col].fillna(0).astype(int)
     else:
         df = df_agg
+    print('concatenated df after fillna(0): \n', df)
     # reorder columns
     columns_order = ['image_proc', 'image_capt', 'camera_ref'] \
                     + classes \
@@ -112,6 +133,7 @@ def group_by_class_name(df_clean, model):
     df = df.reindex(columns=columns_order)
     # insert name of model
     df.insert(3, 'model_name', model_name)
+    print('df with model: \n', df)
 
     return model_name, df
 

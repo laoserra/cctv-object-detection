@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+# Bash orchestrator for image processing by Luis Serra, UBDC, 2023
+# This script orchestrates the following tasks while 
+# images finish being created in the input folder:
+#    1. Retrieve image attributes and write them into the database
+#    2. Check image dimensions and process if adequate (as agreed with GCC)
+#    3. Detect object of interest with TF2 model and produce a log file
+#    4. Detect object of interest with YOLOV4 model and produce a log file
+#    5. Move processed images to the archive folder
+
 dir_in=$(pwd)/input_folder
 script_detections=$(pwd)/detections_main.py
 dir_logs=$(pwd)/logs
@@ -42,4 +51,3 @@ do
             mv $file $dir_archive
         fi
     fi
-done

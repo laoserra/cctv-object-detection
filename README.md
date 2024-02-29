@@ -207,4 +207,5 @@ detections[0]['score'] > 0.0001317993737757206):
 > [!NOTE]
 > Column `camera_ref` from table `images` in the database detections, corresponds to the reference of the camera that produced the image. Not to be confused with `camera_id`. The same camera can take more than one image. Hence, `camera_id` may have more than one `camera_ref`. In other words: `camera_ref = camera_id + camera_preset_id`. Example: camera ref "G57P1" = camera_id "G57" + camera_preset_id "P1". "P1" means "preset 1". Other presets could be added to the same camera.
 
-All detected objects of interest are written to the database. However, only objects with a confidence score greater than 50% are written onto the images (in the form of bounding boxes encircling the object), for visual clarity.
+> [!NOTE]
+> All detected objects of interest are written to the database. However, only the bounding boxes of the objects whose confidence score is greater than 50%, are written onto the images, for visual clarity.

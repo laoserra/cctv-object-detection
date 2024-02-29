@@ -30,7 +30,7 @@ category_index = config.category_index_to_use(sys.argv[2])
 
 
 def create_grpc_stub(host, port=8500):
-    '''Establish a gRPC channel and a stub.'''
+    """Establish a gRPC channel and a stub."""
     hostport = f'{host}:{port}'
     options = [('grpc.max_send_message_length', 512 * 1024 * 1024),
                ('grpc.max_receive_message_length', 512 * 1024 * 1024)]
@@ -42,7 +42,7 @@ def create_grpc_stub(host, port=8500):
 
 def grpc_request(stub, data_sample, model_name,
                  signature_name='serving_default'):
-    '''Call model and signature to make predictions on image.'''
+    """Call model and signature to make predictions on image."""
     request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name
     request.model_spec.signature_name = signature_name
@@ -61,8 +61,9 @@ def grpc_request(stub, data_sample, model_name,
 ###############################################################################
 
 def run_inference_for_single_image(host, data_sample, model_name):
-    '''Get an output dictionary with bboxes, scores, classes and
-    number of detections per image.'''
+    """Get an output dictionary with bboxes, scores,
+    classes and number of detections per image.
+    """
     stub = create_grpc_stub(host)
     rs_grpc = grpc_request(stub, data_sample, model_name)
 
@@ -119,7 +120,7 @@ def run_inference_for_single_image(host, data_sample, model_name):
 
 def get_detections(image_name, image_shape, boxes, classes, scores,
                    num_detections, cat_index, min_score_thresh, model):
-    '''Retrieve attributes of detected objects of interest.'''
+    """Retrieve attributes of detected objects of interest."""
     im_width, im_height = image_shape[1], image_shape[0]
     detections = []
     for i in range(num_detections):
@@ -176,7 +177,7 @@ def get_detections(image_name, image_shape, boxes, classes, scores,
 
 
 def show_inference(host, image_path, model_name):
-    '''Process inference for a set of images.'''
+    """Process inference for a set of images."""
     # read an image
     image_name = os.path.basename(image_path)
     image_base = os.path.splitext(image_name)[0]

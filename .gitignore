@@ -3,7 +3,6 @@ __pycache__/
 *.zip
 *.jpg
 *.csv
-*.gz
 *.log
 *.swp
 *.txt
@@ -15,7 +14,6 @@ __pycache__/
 .sdb/
 .cache/
 input_folder/
-daily_reports/
 models/faster_rcnn_1024_parent/
 models/yolov4_9_objs/
 output_folder/.cache/
@@ -26,4 +24,5 @@ output_folder/.sdb/
 general_utils/.ash_history
 general_utils/.sdb/
 detections.ini
-camera_fault.py
+daily_reports/
+temp/

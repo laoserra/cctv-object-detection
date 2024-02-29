@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Script developed by Luis Serra, UBDC, 2023.
+# This script runs a python script which collects 
+# data to be published in the CCTV API.
+# the arguments are:
+# 50% confidence score and the model to be used.
+
 working_folder="/home/datasci/Work/cctv-object-detection"
 script_yesterday="${working_folder}/select_yesterday_data_to_api.py"
 dir_logs="${working_folder}/logs"
