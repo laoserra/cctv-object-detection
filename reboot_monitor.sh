@@ -4,7 +4,8 @@
 # This script loads the bash orchestrator 
 # script in a tmux dedicated session.
 
-cd  /home/datasci/Work/cctv-object-detection  #ubdc3 path
+# location of the project folder
+cd  /home/ls283h/projects/cctv-object-detection
 
 script_load_monitor=$(pwd)/monitor_images_input_folder.sh
 SESSIONNAME="monitor"

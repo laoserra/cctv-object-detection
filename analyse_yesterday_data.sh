@@ -4,14 +4,14 @@
 # produced the day before.
 # The outcome is a log file report for each one of the analysed files.
 
-working_folder="/home/datasci/Work/cctv-object-detection" #UBDC3 server
+working_folder="/home/ls283h/projects/cctv-object-detection" #UBDC desktop
 script_analysis="$working_folder"/grouping.py
 dir_logs="$working_folder"/logs/analyses
 yesterday_date="$(date -d yesterday +%Y%m%d)"
 
 cd $working_folder
 
-source /home/datasci/.virtualenvs/serving/bin/activate #ubdc3 server
+source /home/ls283h/.virtualenvs/cctv/bin/activate #ubdc desktop
 
 for file in "$working_folder"/daily_reports/*"$yesterday_date".csv.gz
 do

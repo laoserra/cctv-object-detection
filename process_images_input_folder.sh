@@ -12,7 +12,9 @@ user=postgres
 host=localhost
 db=detections
 
-source /home/datasci/.virtualenvs/serving/bin/activate #ubdc3 server
+#  setup shell functions for conda and activate environment
+eval "$(conda shell.bash hook)"
+conda activate cctv
 
 start=`date +%s`
 
