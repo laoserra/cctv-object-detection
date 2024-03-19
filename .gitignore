@@ -5,7 +5,6 @@ __pycache__/
 *.csv
 *.log
 *.swp
-*.txt
 *.pyc
 *.lock
 *.tmp
@@ -13,15 +12,12 @@ __pycache__/
 .java/
 .sdb/
 .cache/
-archive_folder/*
+archive_folder/
 input_folder/
-output_folder/*
-logs/*.log
-logs/aws/*
-logs/analyses/*
-logs/yesterday/*
-models/faster_rcnn_1024_parent/*
-models/yolov4_9_objs/*
+output_folder/
+logs/
+models/faster_rcnn_1024_parent/
+models/yolov4_9_objs/
 .ash_history
 .sdb/
 .cache/
@@ -29,4 +25,3 @@ general_utils/.ash_history
 general_utils/.sdb/
 detections.ini
 daily_reports/
-temp/

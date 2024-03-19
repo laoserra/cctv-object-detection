@@ -22,19 +22,17 @@ The current project is deployed in an Ubuntu 20.04 LTS server machine. However, 
 The instalation process consists in installing the GPU NVIDIA drivers, cloning the project, creating the necessary files and folders, and installing required dependencies. Below are my notes to this process.
 
 ## Install Docker Engine
-This project makes use of Docker container to serve object detections. Follow instructions [here](https://docs.docker.com/engine/install/). Afterwards, don't forget to perform the [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/).
+This project makes use of Tensorflow Serving container to serve object detections. Follow instructions [here](https://docs.docker.com/engine/install/) to install Docker Engine. Afterwards, don't forget to perform the [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/).
 
-## Install NVIDIA CUDA drivers
-There are two options to install nvidia drivers:
-1. Distribution-specific packages (RPM and Deb packages).
-2. Distribution-independent package (runfile packages).
+## Install NVIDIA CUDA Toolkit
 
-Citing NVIDIA official docs: *The distribution-independent package has the advantage of working across a wider set of Linux distributions, but does not update the distribution’s native package management system. The distribution-specific packages interface with the distribution’s native package management system. It is recommended to use the distribution-specific packages, where possible.*
+Follow instructions [here](https://developer.nvidia.com/cuda-toolkit-archive) to install the latest release of the CUDA Toolkit and CUDA drivers.
 
-Following NVIDIA's advice, we suggest going with the distribution-specific package, in our case, a **deb** package. Installation steps:
-1. Check CUDA and Python versions required for tensorflow version [here](https://www.tensorflow.org/install/source#gpu).
-1. Check the [pre-installation actions](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#pre-installation-actions) (optional).
-2. Install [cuda drivers](https://docs.nvidia.com/cuda/cuda-quick-start-guide/#ubuntu) according to tensorflow version to be installed (see requirements' file below). Regarding the development environment step, only the PATH variable is needed:
+> [!NOTE]
+> NVIDIA recommends installing a **distribution-specific** package rather than a **distribution-independent** package. Following NVIDIA's advice, we recommend installing the **deb** option rather than the **run** option.
+
+Finally, don't forget to add the path to the current environment:
+
 ```bash
 export PATH=/usr/local/<cuda-version>/bin${PATH:+:${PATH}}
 ```
@@ -44,7 +42,7 @@ To make the environment path persistent, add the path to the `.bashrc` configura
 ```bash
 sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 ```
-The output should be something like:
+The output should be something like this:
 ```bash
 +-----------------------------------------------------------------------------+
 | NVIDIA-SMI 535.86.10    Driver Version: 535.86.10    CUDA Version: 12.2     |
@@ -68,9 +66,6 @@ The output should be something like:
 ```
 
 4. If docker container cannot access nvidia, install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html) and perform previous test.
-
-> [!NOTE]
-> To install a distribution-independent package, download and run a [.run file](https://www.nvidia.com/download/index.aspx).
 
 ## Install and configure PostgreSQL database
 
@@ -125,50 +120,56 @@ Source: Check [here](https://tableplus.com/blog/2019/09/how-to-use-pgpass-in-pos
 export PATH=/usr/bin:$PATH
 ```
 
+## Install and configure Miniconda
+
+Follow instructions [here](https://docs.anaconda.com/free/miniconda/#quick-command-line-install) to install miniconda in your machine.
+
+> [!NOTE]
+> To prevent Conda from activating the base environment by default, do the following:
+> ```bash
+> conda config --set auto_activate_base false
+> ```
+
+Create a conda environment for the CCTV project with python 3.8.10:
+```bash
+conda create -n cctv python=3.8.10
+```
+
 ## Install and configure CCTV project and dependencies
 
-1. Git clone project:
+1. Git clone the project within the folder where you want it to be installed:
 ```bash
 git clone git@github.com:urbanbigdatacentre/glasgow-cctv-object-detection.git
 ```
 
-2. Inside the cloned directory, create database `detections` and tables:
+2. Positioned inside the cloned directory, create database `detections` and tables:
 ```bash
 psql -U postgres -h localhost -f ./general_utils/create_detection_tables.sql
 ```
-3. Create the following sub-directories inside the project directory:
+
+3. Download the models `faster_rcnn_1024_parent.tar.gz` and `yolov4_9_objs.tar.gz` from https://github.com/urbanbigdatacentre/glasgow-cctv-object-detection/releases/tag/v1.0.0. Afterwards, copy the two files to the sub-directory `models/`, inside the project directory. Unzip both files with the following bash command:
 ```bash
-mkdir archive_folder daily_reports input_folder output_folder logs && mkdir logs/analyses logs/aws logs/yesterday 
+tar -xzvf faster_rcnn_1024_parent.tar.gz
+tar -xzvf yolov4_9_objs.tar.gz
 ```
-4. Download [zip file](https://gla-my.sharepoint.com/:u:/g/personal/luis_serra_glasgow_ac_uk/EVMXV3d6wGJOiIQo_eYlYagB8Zm1X33Sb9jWkfnnQiA6Qg?e=gvhc9s) with models, pip requirements and a test image. Unzip file and copy directories `faster_rcnn_1024_parent/` and `yolov4_9_objs/` to inside the project `models/` directory.
 
-5. Create a Python Virtual Environment for the project:
+> [!NOTE]
+> Since the CCTV GitHub repo is private, you can only download the models interactively or by using the [GitHub CLI](https://cli.github.com/). If the repo were public, `wget` or `curl` tools could also be used.
+
+4. Install Python packages and dependencies, with the conda cctv project activated and positioned inside the cloned directory:
 ```bash
-# create virtual environment folder
-mkdir ~/.virtualenvs # or any other name of your choose
-# create python virtual environment
-python3 -m venv ~/.virtualenvs/cctv # or any other name of your choose
+conda activate cctv
+pip install -r ./general_utils/requirements.txt
 ```
-> [!WARNING]
-> It is advisable to use other Python virtual environment for a professional deployment, such as [virtualenv](https://virtualenv.pypa.io/en/latest/). Other options exist though.
 
-6. Install Python packages
-In the zip file there's a `requirement.txt` file for Ubuntu 20.04. Run the following command in the python virtual environment created:
-```bash
-# activate the project virtual environment
-source .venv/bin/activate
+> [!NOTE]
+> Requirements may differ for different Ubuntu releases.
 
-# install all dependencies from the requirements file
-pip install -r requirements.txt
-```
-Alternative if not working: before pip installing the requirements file, edit it and remove dependencies version.
+5. Update all files, especially the bash files!
+In the file `monitor_images_input_folder.sh` change the path of the activation of the conda cctv environment.
+In the file `process_images_input_folder.sh` change the path of the activation of the conda cctv environment.
 
-
-7. Update all files, especially the bash files!
-In the file `monitor_images_input_folder.sh` change the line correspondent to the activation of the virtualenv.
-In the file `process_images_input_folder.sh` change the line correspondent to the activation of the virtualenv.
-
-8. Create a cron task to access database, produce a daily gzip file and send it to the aws bucket `crontab -e`:
+6. Create a cron task to access database, produce a daily gzip file and send it to the aws bucket `crontab -e`:
 ```bash
 SHELL=/bin/bash
 PATH=copy-env-path-here
@@ -178,28 +179,30 @@ PATH=copy-env-path-here
 0  3  *  *  * /home/user/glasgow-cctv-object-detection/analyse_yesterday_data.sh > /dev/null 2>&1
 ```
 
-9. Check if `identify` already exists:
+7. Check if `identify` already exists:
 ```bash
 identify --version
 ```
 If not install with:
 ```bash
-sudo apt install imagemagick.
+sudo apt install imagemagick
 ```
 
-10. Check path of the file `reboot_monitor.sh`
+8. Change the path for the location of the project folder in the `reboot_monitor.sh` file.
 
-> [!NOTE]
-> Requirements may differ for diifferent Ubuntu releases.
-
-11. Run monitor bash file and tensorflow serving docker container:
+9. Create the following sub-directories in the project main directory:
 ```bash
-./monitor_images_input_folder.sh
-./reboot_monitor.sh
+mkdir archive_folder input_folder output_folder daily_reports logs && logs/aws logs/analyses logs/yesterday
 ```
-12. Test system with a couple of test images (monitor and process bash files).
 
-13. Run one colour image `dark_yellow_canvas.jpg` provided, with tf2 model. Check maximum confidence score obtained in detections list. Afterwards, replace following threshold number in `detections_main.py` file:
+10. Run monitor bash file and tensorflow serving docker container:
+```bash
+./reboot_monitor.sh
+./monitor_images_input_folder.sh
+```
+11. Test system with a couple of test images by copying or moving some images to the `input_folder`.  
+
+12. Run one colour image `dark_yellow_canvas.jpg` provided, with tf2 model. Check maximum confidence score obtained in detections list. Afterwards, replace following threshold number in `detections_main.py` file:
 ```python
 detections[0]['score'] > 0.0001317993737757206):
 ```
