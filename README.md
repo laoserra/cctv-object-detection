@@ -192,7 +192,7 @@ sudo apt install imagemagick
 
 9. Create the following sub-directories in the project main directory:
 ```bash
-mkdir archive_folder input_folder output_folder daily_reports logs && logs/aws logs/analyses logs/yesterday
+mkdir archive_folder input_folder output_folder daily_reports logs && mkdir logs/aws logs/analyses logs/yesterday
 ```
 
 10. Run monitor bash file and tensorflow serving docker container:
