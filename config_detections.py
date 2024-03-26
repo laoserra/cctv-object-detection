@@ -46,17 +46,26 @@ score_threshold_draw = 0.5
 # IP address of the model server
 HOST = 'localhost'
 
+# Name of the models
+MODEL_NAME_TENSORFLOW = 'faster_rcnn_1024_parent'
+MODEL_NAME_YOLO = 'yolov4_9_objs'
 
 # category_index to use depends on the model
-def category_index_to_use(model_name):
+def category_index_to_use(model):
     """Set category index to use.
 
     Model dependent.
     """
-    if model_name == 'faster_rcnn_1024_parent':
+    if model == 'tensorflow':
         category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS)
-    else:  # it's a yolo model
+    else:  # it's the yolo model
         category_index = load_class_names(PATH_TO_COCO_LABELS)
 
     return category_index
+
+# tensorflow one colour maximum confidence score
+TF_THRES_SCORE = 0.0001317993737757206
+# threshold score used is highest obtained for one colour image
+# items in detections are ordered by score in descending order
+# threshold score may vary in different machines
 ###############################################################################
