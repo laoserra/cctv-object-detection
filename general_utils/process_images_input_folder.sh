@@ -3,9 +3,14 @@
 # Bash orchestrator, developed by Luis Serra, UBDC, 2023
 # Script similar to "monitor_images_input_folder.sh".
 # To be used manually to process images in the input folder.
+# Instructions: move this script to the main folder and run it.
+# To run it do the following in the command line:
+# ./process_images_input_folder.sh
+# IMPORTANT NOTE: Be sure that monitor_images_input_folder.sh script isn't running.
 
 dir_in=$(pwd)/input_folder
-script_detections=$(pwd)/detections_main.py
+script_tf=$(pwd)/detections_main_tensorflow.py
+script_yolo=$(pwd)/detections_main_yolo.py
 dir_logs=$(pwd)/logs
 dir_archive=$(pwd)/archive_folder
 user=postgres
@@ -42,9 +47,9 @@ do
         mv $file $dir_archive
     else
         echo ---------- executing faster_rcnn_1024_parent model on image $filename ---------- 
-        $script_detections $file faster_rcnn_1024_parent > $dir_logs/"$(basename $file .jpg)_rcnn.log" 2>&1
+        $script_tf $file > $dir_logs/"$(basename $file .jpg)_rcnn.log" 2>&1
         echo ---------- executing yolov4_9_objs model on image $filename -------------------- 
-        $script_detections $file yolov4_9_objs > $dir_logs/"$(basename $file .jpg)_yolo.log" 2>&1
+        $script_yolo $file > $dir_logs/"$(basename $file .jpg)_yolo.log" 2>&1
         mv $file $dir_archive
     fi
 done

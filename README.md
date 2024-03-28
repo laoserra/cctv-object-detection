@@ -173,7 +173,7 @@ In the file `process_images_input_folder.sh` change the path of the activation o
 ```bash
 SHELL=/bin/bash
 PATH=copy-env-path-here
-@reboot /home/datasci/Work/glasgow-cctv-object-detection/reboot_monitor.sh
+@reboot /home/datasci/Work/glasgow-cctv-object-detection/general_utils/reboot_monitor.sh
 0  2  *  *  * /home/user/glasgow-cctv-object-detection/process_yesterday_data.sh > /dev/null 2>&1
 30  2  *  *  * /home/user/glasgow-cctv-object-detection/faulty.sh > /dev/null 2>&1
 0  3  *  *  * /home/user/glasgow-cctv-object-detection/analyse_yesterday_data.sh > /dev/null 2>&1
