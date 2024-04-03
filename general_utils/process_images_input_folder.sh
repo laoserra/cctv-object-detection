@@ -47,9 +47,10 @@ do
         mv $file $dir_archive
     else
         echo ---------- executing faster_rcnn_1024_parent model on image $filename ---------- 
-        $script_tf $file > $dir_logs/"$(basename $file .jpg)_rcnn.log" 2>&1
+        $script_tf $file > $dir_logs/"$(basename $file .jpg)_rcnn.log" 2>&1 &
         echo ---------- executing yolov4_9_objs model on image $filename -------------------- 
-        $script_yolo $file > $dir_logs/"$(basename $file .jpg)_yolo.log" 2>&1
+        $script_yolo $file > $dir_logs/"$(basename $file .jpg)_yolo.log" 2>&1 &
+        wait
         mv $file $dir_archive
     fi
 done
