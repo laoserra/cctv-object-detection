@@ -11,11 +11,15 @@
 dir_in=$(pwd)/input_folder
 script_tf=$(pwd)/detections_main_tensorflow.py
 script_yolo=$(pwd)/detections_main_yolo.py
+script_blur=$(pwd)/detect_blurred_images.py
 dir_logs=$(pwd)/logs
 dir_archive=$(pwd)/archive_folder
 user=postgres
 host=localhost
 db=detections
+
+# set warning top limit
+end=2
 
 #  setup shell functions for conda and activate environment
 eval "$(conda shell.bash hook)"
@@ -39,10 +43,12 @@ do
                                                        VALUES(to_timestamp($current_time),to_timestamp($image_time),
                                                                            '$camera_ref','$filename',$width,$height) 
                                                        RETURNING id;")
-    if [ "$width" -eq 550 ] && [ "$height" -eq 367 ]; then
-        echo ---------- image $filename: Camera in use by GOC -------------------------------
+    warning=$("$script_blur" "$file")
+    echo $warning
+    if [ "$warning" -ge 1 ] && [ "$warning" -le "$end" ]; then
+        echo ---------- image "$filename" not fit for object detection -------------------------------
         psql -U $user -h $host -d $db -c "UPDATE images
-                                          SET warnings = 1
+                                          SET warnings = $warning
                                           WHERE id = $image_id;"
         mv $file $dir_archive
     else
