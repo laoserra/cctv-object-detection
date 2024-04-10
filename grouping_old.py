@@ -5,14 +5,12 @@ import pandas as pd
 import config_grouping as cg
 import boto3
 import os
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 total_groups = cg.GROUPS_IN_A_DAY
 camera_ref_names = cg.load_camera_names('camera_ref.names')
 threshold = cg.THRESHOLD
+data_issues = ()
+s3_client = boto3.client('s3')
 
 
 def clean_data(df_raw):
@@ -73,75 +71,80 @@ def check_cameras(df_raw):
     return new_cameras, missing_cameras
 
 
-def analyse_data(dataframe, file_path):
-    """Logs analysis of the data."""
-    data_issues = ()
+def main(file_path):
+    """Prints analysis of the data.
 
-    if not dataframe.empty:
-        cleaned_data = clean_data(dataframe)
+    Next release should replace this with logging.
+    """
+    global data_issues
+
+    data = pd.read_csv(file_path)
+    if not data.empty:
+        cleaned_data = clean_data(data)
         df, cams_group, groups = grouping(cleaned_data)
-        logger.info('Number of batches processed in the day:')
-        logger.info(f'Found {groups} batches of images in {total_groups} expected\n')
-        logger.info('Duplicated cameras per batch/group:')
+        print('Number of batches processed in the day:')
+        print(f'Found {groups} batches of images in {total_groups} expected\n')
+        print('Duplicated cameras per batch/group:')
         if df.empty:
-            logger.info('Found no duplicated cameras')
+            print('Found no duplicated cameras')
         else:
             data_issues = data_issues + (2,)
-            logger.warning(df.to_string(index=False))
-        logger.info('\nAverage number of processed cameras per batch in the day:')
-        logger.info(f'There\'s a mean of {cams_group} cameras per batch in \
+            print(df.to_string(index=False))
+        print('\nAverage number of processed cameras per batch in the day:')
+        print(f'There\'s a mean of {cams_group} cameras per batch in \
 {len(camera_ref_names)} expected')
-        new_cams, missing_cams = check_cameras(dataframe)
-        logger.info('\nNew cameras found in the processed file:')
+        new_cams, missing_cams = check_cameras(data)
+        print('\nNew cameras found in the processed file:')
         if new_cams:
-            logger.warning(new_cams)
+            print(new_cams)
         else:
-            logger.info('No new cameras/presets found')
-        logger.info('\nMissing camera/presets in the processed file:')
+            print('No new cameras/presets found')
+        print('\nMissing camera/presets in the processed file:')
         if missing_cams:
-            logger.warning(missing_cams)
+            print(missing_cams)
         else:
-            logger.info('No missing cameras found')
+            print('No missing cameras found')
 
     else:
-        logger.warning('Found no data in the source file!')
-        logger.info(f'Source file: {file_path}')
+        print('Found no data in the source file!')
+        print(f'Source file: {file_path}')
         data_issues = data_issues + (1,)
 
-    return data_issues
-
-
-def upload_to_s3(file_path, model_type, basename):
-    s3_client = boto3.client('s3')
-    try:
-        s3_client.upload_file(
-                Filename=file_path,
-                Bucket='cctv-data-ubdc-ac-uk',
-                Key=f'cctv-server-reports/v1/{model_type}/{basename}')
-    except Exception as e:
-        logger.error('\nAn error occurred when trying to upload the file '\
-                f'"{basename}" to AWS bucket: {e}')
-    else:
-        logger.info(f'\nfile "{basename}" uploaded successfully to AWS bucket')
-
-
-def main(file_path):
-    df = pd.read_csv(file_path)
-    data_issues = analyse_data(df, file_path)
     if not data_issues:
-        logger.info('\nNo issues found in the data')
+        print('\nNo issues found in the data')
         model = file_path.split('-')
-        model_type = model[-2]
         basename = os.path.basename(file_path)
-        if model_type in ['tf2', 'yolo']:
-            upload_to_s3(file_path, model_type, basename)
+        if model[-2] == 'tf2':
+            try:
+                s3_client.upload_file(
+                        Filename=file_path,
+                        Bucket='cctv-data-ubdc-ac-uk',
+                        Key=f'cctv-server-reports/v1/tf2/{basename}')
+            except:
+                print('\nAn error occurred when trying to upload the file '\
+                      f'"{basename}" to aws bucket')
+            else:
+                print(f'\nfile "{basename}" uploaded successfully to aws bucket')
+
+        elif model[-2] == 'yolo':
+            try:
+                s3_client.upload_file(
+                        Filename=file_path,
+                        Bucket='cctv-data-ubdc-ac-uk',
+                        Key=f'cctv-server-reports/v1/yolo/{basename}')
+            except:
+                print('\nAn error occurred when trying to upload the file '\
+                      f'"{basename}" to aws bucket')
+            else:
+                print(f'\nfile "{basename}" uploaded successfully to aws bucket')
+
         else:
-            logger.warning(f'\nmodel "{model[3]}" not found. Which AWS bucket to '\
-                    'upload the file to?')
+            print(f'\nmodel "{model[3]}" not found. Which aws bucket to '\
+                  'upload the file to?')
 
     else:
-        logger.warning('issues found :', data_issues)
+        print('issues found :', data_issues)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv[1])
