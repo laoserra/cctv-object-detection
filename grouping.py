@@ -80,33 +80,36 @@ def analyse_data(dataframe, file_path):
     if not dataframe.empty:
         cleaned_data = clean_data(dataframe)
         df, cams_group, groups = grouping(cleaned_data)
-        logger.info('Number of batches processed in the day:')
-        logger.info(f'Found {groups} batches of images in {total_groups} expected\n')
-        logger.info('Duplicated cameras per batch/group:')
+        # checks for errors in batches of images
+        logger.info(f'Found {groups} batches of images in %s expected',
+                    total_groups)
         if df.empty:
-            logger.info('Found no duplicated cameras')
+            logger.info('Found no duplicated cameras per batch')
         else:
-            data_issues = data_issues + (2,)
-            logger.warning(df.to_string(index=False))
-        logger.info('\nAverage number of processed cameras per batch in the day:')
-        logger.info(f'There\'s a mean of {cams_group} cameras per batch in \
-{len(camera_ref_names)} expected')
+            data_issues = data_issues + ('duplicated cameras',)
+            logger.error('Found duplicated cameras. See below.')
+            print(df.to_string(index=False))
+        logger.info("There\'s a mean of %s cameras per batch" +
+                    " in %s expected in the day",
+                    cams_group,
+                    len(camera_ref_names))
+        # checks for absent cameras and/or for new cameras added
         new_cams, missing_cams = check_cameras(dataframe)
-        logger.info('\nNew cameras found in the processed file:')
         if new_cams:
-            logger.warning(new_cams)
+            logger.warning('Detected %s new cameras/presets in the data',
+                           new_cams)
         else:
-            logger.info('No new cameras/presets found')
-        logger.info('\nMissing camera/presets in the processed file:')
+            logger.info('No new cameras/presets found in the processed file')
         if missing_cams:
-            logger.warning(missing_cams)
+            logger.warning('Missing camera/presets in the processed file: %s',
+                           missing_cams)
         else:
-            logger.info('No missing cameras found')
+            logger.info('No missing cameras/presets found in file')
 
     else:
-        logger.warning('Found no data in the source file!')
-        logger.info(f'Source file: {file_path}')
-        data_issues = data_issues + (1,)
+        logger.error('Found no data in the source file!')
+        logger.info('Source file: %s', file_path)
+        data_issues = data_issues + ('empty file',)
 
     return data_issues
 
@@ -119,28 +122,31 @@ def upload_to_s3(file_path, model_type, basename):
                 Bucket='cctv-data-ubdc-ac-uk',
                 Key=f'cctv-server-reports/v1/{model_type}/{basename}')
     except Exception as e:
-        logger.error('\nAn error occurred when trying to upload the file '\
-                f'"{basename}" to AWS bucket: {e}')
+        logger.error('An error occurred when trying to upload the file "%s"' +
+                     ' to AWS bucket: %s', basename, e)
     else:
-        logger.info(f'\nfile "{basename}" uploaded successfully to AWS bucket')
+        logger.info('file "%s" uploaded successfully to AWS bucket', basename)
 
 
 def main(file_path):
     df = pd.read_csv(file_path)
     data_issues = analyse_data(df, file_path)
     if not data_issues:
-        logger.info('\nNo issues found in the data')
+        logger.info('No issues found in the data')
         model = file_path.split('-')
         model_type = model[-2]
         basename = os.path.basename(file_path)
         if model_type in ['tf2', 'yolo']:
             upload_to_s3(file_path, model_type, basename)
         else:
-            logger.warning(f'\nmodel "{model[3]}" not found. Which AWS bucket to '\
-                    'upload the file to?')
+            logger.error('model "%s" not found. Which AWS bucket' +
+                         ' to upload the file to?',
+                         model[3])
+            data_issues = data_issues + ('model not found',)
 
     else:
-        logger.warning('issues found :', data_issues)
+        logger.error('Found "%s" error(s). DATA NOT UPLOADED TO API.',
+                     ", ".join(str(item) for item in data_issues))
 
 
 if __name__ == "__main__":

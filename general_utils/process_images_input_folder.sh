@@ -8,6 +8,10 @@
 # ./process_images_input_folder.sh
 # IMPORTANT NOTE: Be sure that monitor_images_input_folder.sh script isn't running.
 
+# path to project main folder
+# change to yours, please!
+cd '/home/ls283h/projects/cctv-object-detection'
+
 dir_in=$(pwd)/input_folder
 script_tf=$(pwd)/detections_main_tensorflow.py
 script_yolo=$(pwd)/detections_main_yolo.py
