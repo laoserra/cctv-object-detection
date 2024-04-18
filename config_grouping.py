@@ -3,9 +3,6 @@
 # expected number of batches in a day
 GROUPS_IN_A_DAY = 48
 
-# >4x highest processing time (in seconds) between two consecutive images
-THRESHOLD = 41
-
 
 def load_camera_names(file_name):
     """Returns a list with the references of the cameras.

@@ -12,52 +12,56 @@ logger = logging.getLogger(__name__)
 
 total_groups = cg.GROUPS_IN_A_DAY
 camera_ref_names = cg.load_camera_names('camera_ref.names')
-threshold = cg.THRESHOLD
+
+
+def convert_to_datetime(series_dt_obj):
+    series_date = pd.to_datetime(series_dt_obj,
+                                 format="%Y-%m-%d %H:%M:%S%z")
+    series_date = series_date.dt.tz_convert('Europe/London')
+
+    return series_date
 
 
 def clean_data(df_raw):
     """Filter attributes of interest for grouping.
 
-    The source file is the CCTV daily counts.
+    And convert string to datetime format.
     """
-    if (df_raw['image_proc'].str.contains("\+00:00").any() &
-            df_raw['image_proc'].str.contains("\+01:00").any()):
+    # this operation is necessary because conversion to datetime only
+    # occurs if datetime is the same among all records
+    if (df_raw['image_capt'].str.contains("\+00:00").any() &
+            df_raw['image_capt'].str.contains("\+01:00").any()):
         # .copy() is important to avoid a copy/view warning
-        df_GMT = df_raw[df_raw['image_proc'].str.contains("\+00:00")].copy()
-        df_GMT['image_proc'] = pd.to_datetime(df_GMT['image_proc'],
-                                              format="%Y-%m-%d %H:%M:%S%z")
-        df_GMT['image_proc'] = df_GMT['image_proc'].dt.tz_convert('Europe/London')
-        df_BST = df_raw[df_raw['image_proc'].str.contains("\+01:00")].copy()
-        df_BST['image_proc'] = pd.to_datetime(df_BST['image_proc'],
-                                              format="%Y-%m-%d %H:%M:%S%z")
-        df_BST['image_proc'] = df_BST['image_proc'].dt.tz_convert('Europe/London')
+        df_GMT = df_raw[df_raw['image_capt'].str.contains("\+00:00")].copy()
+        df_GMT['image_capt'] = convert_to_datetime(df_GMT['image_capt'])
+        df_BST = df_raw[df_raw['image_capt'].str.contains("\+01:00")].copy()
+        df_BST['image_capt'] = convert_to_datetime(df_BST['image_capt'])
         df = pd.concat([df_GMT, df_BST])
-        df.sort_values(by=['image_proc'], inplace=True)
         df = df.loc[:, ['image_proc', 'image_capt', 'camera_ref']]
     else:
         df = pd.DataFrame()
-        df['image_proc'] = pd.to_datetime(df_raw['image_proc'],
-                                          format="%Y-%m-%d %H:%M:%S%z")
-        df['image_capt'] = df_raw['image_capt']
+        df['image_proc'] = df_raw['image_proc']
+        df['image_capt'] = convert_to_datetime(df_raw['image_capt'])
         df['camera_ref'] = df_raw['camera_ref']
-        df.sort_values(by=['image_proc'], inplace=True)
 
     return df
 
 
 def grouping(df):
     """Creates and analyses batches of processed images."""
-    df['group'] = df['image_proc'].diff().dt.seconds.gt(threshold).cumsum()
-    number_of_groups = df.iloc[-1, -1] + 1
+
     df_dup = pd.DataFrame(columns=['image_proc', 'image_capt',
-                                   'camera_ref', 'group'])
+                                   'camera_ref'])
     cams_per_group = []
-    grouped = df.groupby('group')
-    for group_id, group in grouped:
+    df.set_index('image_capt', inplace=True, drop=False)
+    grouped_df = df.groupby(pd.Grouper(freq='30min', closed='left'))
+    number_of_groups = 0
+    for group_id, group in grouped_df:
+        number_of_groups += 1
         cams_per_group.append(len(group.camera_ref.unique()))
         if group.duplicated(subset=['camera_ref']).any():
             df_temp = group[group.duplicated(subset=['camera_ref'],
-                            keep=False)]
+                                             keep=False)]
             df_dup = pd.concat([df_dup, df_temp])
     average_cams_group = round(sum(cams_per_group) / number_of_groups, 1)
 
@@ -87,7 +91,9 @@ def analyse_data(dataframe, file_path):
             logger.info('Found no duplicated cameras per batch')
         else:
             data_issues = data_issues + ('duplicated cameras',)
-            logger.error('Found duplicated cameras. See below.')
+            logger.error('Found duplicated cameras. ' +
+                         'Print below shows duplicated camera(s) ' +
+                         'alongside correct camera, for debugging.')
             print(df.to_string(index=False))
         logger.info("There\'s a mean of %s cameras per batch" +
                     " in %s expected in the day",
@@ -143,7 +149,6 @@ def main(file_path):
                          ' to upload the file to?',
                          model[3])
             data_issues = data_issues + ('model not found',)
-
     else:
         logger.error('Found "%s" error(s). DATA NOT UPLOADED TO API.',
                      ", ".join(str(item) for item in data_issues))
