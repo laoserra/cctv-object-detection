@@ -38,7 +38,9 @@ export PATH=/usr/local/<cuda-version>/bin${PATH:+:${PATH}}
 ```
 To make the environment path persistent, add the path to the `.bashrc` configuration file.
 
-3. Test a sample workload to verify installation:
+3. Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html).
+
+4. Test a sample workload to verify installation:
 ```bash
 sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 ```
@@ -65,13 +67,11 @@ The output should be something like this:
 +-----------------------------------------------------------------------------+
 ```
 
-4. If docker container cannot access nvidia, install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html) and perform previous test.
-
 ## Install and configure PostgreSQL database
 
 1. [Install latest postgresql](https://www.postgresql.org/download/linux/ubuntu/). Otherwise, it is also possible to use PostgreSQL pre-installed with Ubuntu.
 
-> [!NOTE]
+> [!TIP]
 > You can find more detailed instructions [here](https://devopscube.com/install-postgresql-on-ubuntu/).
 
 2. Change password for postgres user:
@@ -102,7 +102,7 @@ psql -U postgres -h localhost
 localhost:5432:*:postgres:Str0ngP@ssw0rd
 ```
 
-> [!NOTE]
+> [!TIP]
 > To generate a strong password (16 bytes), type  `openssl rand -base64 16` in the cmd line (more info [here](https://ostechnix.com/4-easy-ways-to-generate-a-strong-password-in-linux/)).
 
 Set the proper permission so it would be used by psql:
@@ -124,7 +124,7 @@ export PATH=/usr/bin:$PATH
 
 Follow instructions [here](https://docs.anaconda.com/free/miniconda/#quick-command-line-install) to install miniconda in your machine.
 
-> [!NOTE]
+> [!TIP]
 > To prevent Conda from activating the base environment by default, do the following:
 > ```bash
 > conda config --set auto_activate_base false
@@ -162,8 +162,8 @@ conda activate cctv
 pip install -r ./general_utils/requirements.txt
 ```
 
-> [!NOTE]
-> Requirements may differ for different Ubuntu releases.
+> [!WARNING]
+> Requirements may differ for different Python versions and Ubuntu machines. The requirements presented here were tested for Python 3.8.10 running on Ubuntu 22.04 LTS and Ubuntu 20.04 LTS.
 
 5. Update all files, especially the bash files!
 In the file `monitor_images_input_folder.sh` change the path of the activation of the conda cctv environment.
