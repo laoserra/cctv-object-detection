@@ -163,7 +163,7 @@ pip install -r ./general_utils/requirements.txt
 ```
 
 > [!WARNING]
-> Requirements may differ for different Python versions and Ubuntu machines. The requirements presented here were tested for Python 3.8.10 running on Ubuntu 22.04 LTS and Ubuntu 20.04 LTS.
+> Requirements may differ for different Python versions and Ubuntu machines. The requirements presented here were tested for Python 3.8.10 running on Ubuntu 22.04 LTS or Ubuntu 20.04 LTS operating systems.
 
 5. Update all files, especially the bash files!
 In the file `monitor_images_input_folder.sh` change the path of the activation of the conda cctv environment.
@@ -175,8 +175,6 @@ SHELL=/bin/bash
 PATH=copy-env-path-here
 @reboot /home/datasci/Work/glasgow-cctv-object-detection/general_utils/reboot_monitor.sh
 0  2  *  *  * /home/user/glasgow-cctv-object-detection/process_yesterday_data.sh > /dev/null 2>&1
-30  2  *  *  * /home/user/glasgow-cctv-object-detection/faulty.sh > /dev/null 2>&1
-0  3  *  *  * /home/user/glasgow-cctv-object-detection/analyse_yesterday_data.sh > /dev/null 2>&1
 ```
 
 7. Check if `identify` already exists:
@@ -188,17 +186,17 @@ If not install with:
 sudo apt install imagemagick
 ```
 
-8. Change the path for the location of the project folder in the `reboot_monitor.sh` file.
+8. Change the paths for the location of the main project folder in the `reboot_monitor.sh`  and `load_tf_serving.sh` files.
 
 9. Create the following sub-directories in the project main directory:
 ```bash
 mkdir archive_folder input_folder output_folder daily_reports logs && mkdir logs/aws logs/analyses logs/yesterday
 ```
 
-10. Run monitor bash file and tensorflow serving docker container:
+10. Run tensorflow serving container and monitor bash file:
 ```bash
-./reboot_monitor.sh
-./monitor_images_input_folder.sh
+./general_utils/load_tf_serving.sh
+./general_utils/reboot_monitor.sh
 ```
 11. Test system with a couple of test images by copying or moving some images to the `input_folder`.  
 

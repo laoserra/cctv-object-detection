@@ -28,7 +28,8 @@ def clean_data(df_raw):
     And convert string to datetime format.
     """
     # this operation is necessary because conversion to datetime only
-    # occurs if datetime is the same among all records
+    # occurs if datetime is the same among all records. However, this
+    # situation does not happen when clocks change.
     if (df_raw['image_capt'].str.contains("\+00:00").any() &
             df_raw['image_capt'].str.contains("\+01:00").any()):
         # .copy() is important to avoid a copy/view warning
