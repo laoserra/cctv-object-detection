@@ -41,7 +41,7 @@ def detect_one_color(p_thres, rgb_thres, image):
     # Check if it's mostly one color based on the threshold
     mostly_one_color = close_to_dominant > threshold
 
-    return (2 if mostly_one_color else 0)
+    return (7 if mostly_one_color else 0)
 
 
 def main(image_path):

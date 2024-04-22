@@ -23,7 +23,7 @@ host=localhost
 db=detections
 
 # set warning top limit
-end=2
+end=7
 
 #  setup shell functions for conda and activate environment
 eval "$(conda shell.bash hook)"

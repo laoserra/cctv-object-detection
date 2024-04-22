@@ -7,7 +7,7 @@ import boto3
 import os
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 total_groups = cg.GROUPS_IN_A_DAY
@@ -28,7 +28,8 @@ def clean_data(df_raw):
     And convert string to datetime format.
     """
     # this operation is necessary because conversion to datetime only
-    # occurs if datetime is the same among all records
+    # occurs if datetime is the same among all records. However, this
+    # situation does not happen when clocks change.
     if (df_raw['image_capt'].str.contains("\+00:00").any() &
             df_raw['image_capt'].str.contains("\+01:00").any()):
         # .copy() is important to avoid a copy/view warning
@@ -94,7 +95,7 @@ def analyse_data(dataframe, file_path):
             logger.error('Found duplicated cameras. ' +
                          'Print below shows duplicated camera(s) ' +
                          'alongside correct camera, for debugging.')
-            print(df.to_string(index=False))
+            logger.debug(df.to_string(index=False))
         logger.info("There\'s a mean of %s cameras per batch" +
                     " in %s expected in the day",
                     cams_group,
