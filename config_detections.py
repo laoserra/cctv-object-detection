@@ -65,6 +65,7 @@ def category_index_to_use(model):
 
 # tensorflow one colour maximum confidence score
 TF_THRES_SCORE = 0.0001317993737757206
+# NOTE:
 # threshold score used is highest obtained for one colour image
 # items in detections are ordered by score in descending order
 # threshold score may vary in different machines
