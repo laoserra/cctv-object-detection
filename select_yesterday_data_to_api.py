@@ -57,18 +57,11 @@ def select_yesterday_data(score, model):
 def clean_data(data):
     """Perform basic cleaning to data."""
     df = pd.DataFrame(data[1], columns=data[0])
-    print('read data: \n', df.head())
-    print('read  data: ', df.shape)
     # remove empty rows in which all fields are empty
     df = df.dropna(how='all')
-    print('dropna: \n', df.head())
-    print('dropna: ', df.shape)
     df = df.drop_duplicates()
-    print('drop duplicates: \n', df.head())
-    print('drop duplicates: ', df.shape)
     # remove bboxes columns (only needed to remove duplicates in previous step)
     df = df[[col for col in df.columns if not col.startswith('bbox')]]
-    print('removed bboxes columns: \n', df.head())
 
     return df
 
@@ -94,7 +87,6 @@ def group_by_class_name(df_clean, model):
         # drop columns 'score' and 'class_name'
         df_nan = df_nan[['image_proc', 'image_capt', 'camera_ref', 'warnings']]
         nan = 1
-        print('df_nan: \n', df_nan)
 
     # group detections by image attributes and class object
     df_agg = df.groupby(['image_proc',
@@ -104,28 +96,21 @@ def group_by_class_name(df_clean, model):
                          'class_name'])
     # transpose class_name to columns with counts
     df_agg = df_agg.size().unstack(fill_value=0).reset_index()
-    print('df_agg: \n', df_agg)
-    print('df_agg.columns: ', df_agg.columns)
-    print('df_agg.columns[4:]: ', df_agg.columns[4:])
     # check for missing classes of objects and update df_agg
     df_agg_classes = df_agg.columns[4:]
-    print('len: ', len(df_agg.columns[4:]))
 
     if len(df_agg_classes) < len(classes):
         missing_classes = list(set(classes) - set(df_agg_classes))
-        print('missing_classes ', missing_classes)
         for col in missing_classes:
             df_agg[col] = 0
 
     # concatenate df_nan with df_agg if df_nan existent
     if nan:
         df = pd.concat([df_nan, df_agg])
-        print('concatenated df: \n', df)
         for col in classes:
             df[col] = df[col].fillna(0).astype(int)
     else:
         df = df_agg
-    print('concatenated df after fillna(0): \n', df)
     # reorder columns
     columns_order = ['image_proc', 'image_capt', 'camera_ref'] \
                     + classes \
@@ -133,7 +118,6 @@ def group_by_class_name(df_clean, model):
     df = df.reindex(columns=columns_order)
     # insert name of model
     df.insert(3, 'model_name', model_name)
-    print('df with model: \n', df)
 
     return model_name, df
 
@@ -148,5 +132,3 @@ def main(score, model):
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2])
-    # main(0.5, 'yolov4_9_objs')
-    # get_data_api(0.5, 'faster_rcnn_1024_parent')
