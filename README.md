@@ -12,9 +12,13 @@ This new release aims to:
 - Update and simplify existing code from Tensorflow 1 to Tensorflow 2.
 - Deploy in-house trained Yolo model to detect different types of vehicles, pedestrians and cyclists.
 
-A simplified flowchart of all the operations occurring at this stage:
+A simplified flowchart of the continuous operations occurring at this stage:
 
-![Operations](component_2.png)
+![Continuous operations](./general_utils/CCTV_continuous_process.PNG)
+
+A simplified flowchart of the once-a-day operations to feed the API:
+
+![Continuous operations](./general_utils/CCTV_once_a_day_process.PNG)
 
 # Getting started
 The current project is deployed in an Ubuntu 20.04 LTS server machine. However, it is possible to run this project in any Linux Debian machine with NVIDIA GPU. 
@@ -200,7 +204,7 @@ mkdir archive_folder input_folder output_folder daily_reports logs && mkdir logs
 ```
 11. Test system with a couple of test images by copying or moving some images to the `input_folder`.  
 
-12. Run one colour image `dark_yellow_canvas.jpg` provided, with tf2 model. Check maximum confidence score obtained in detections list. Afterwards, replace following threshold number in `detections_main.py` file:
+12. Run one colour image `dark_yellow_canvas.jpg` provided, with tf2 model. Check maximum confidence score obtained in detections list. Afterwards, replace following threshold number in `detections_main_tensorflow.py` file:
 ```python
 detections[0]['score'] > 0.0001317993737757206):
 ```

@@ -3,10 +3,18 @@
 import sys
 import pandas as pd
 
-### Manually corrects faulty camera in the GZIP file. ###
-### Add or disable data locs according to needs.      ###
+### Corrects faulty camera in the GZIP file. ###
+### Manually add or disable data locs according to needs. ###
+
+# Example:
+# if camera pointing to wrong location add the following
+# line to the code below:
+    # data.loc[data['camera_ref'] == 'C134', 'warnings'] = 4
+    # remove added line when problem with camera is solved.
 
 # Codes in use:
+# warning = 1 (camera in use by GCC). NOTE: THIS WARNING
+# IS ALREADY BEING SET AUTOMATICALLY TO DATABASE.
 # warning = 2 ("engineering_note": "Mechanical camera fault -
 # cannot tilt. Found out in 2023-11-06").
 # warning = 3 (capture preset pointing to tree foliage).
@@ -14,13 +22,9 @@ import pandas as pd
 # warning = 5 (camera out of focus).
 # warning = 6 (street environment in use for other purposes,
 # e.g. Christmas fair).
-# warning = 7 (one color image). NOTE: THIS WARNING 
+# warning = 7 (one color image). NOTE: THIS WARNING
 # IS ALREADY BEING SET AUTOMATICALLY TO DATABASE.
-
-# Instructions:
-# Example for camera pointing to wrong location:
-# data.loc[data['camera_ref'] == 'C134', 'warnings'] = 4
-
+    
 
 def main(file_path):
     """Set a warning code for the faulty cameras.
