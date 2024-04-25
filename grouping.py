@@ -7,7 +7,7 @@ import boto3
 import os
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 total_groups = cg.GROUPS_IN_A_DAY
@@ -95,7 +95,7 @@ def analyse_data(dataframe, file_path):
             logger.error('Found duplicated cameras. ' +
                          'Print below shows duplicated camera(s) ' +
                          'alongside correct camera, for debugging.')
-            print(df.to_string(index=False))
+            logger.debug(df.to_string(index=False))
         logger.info("There\'s a mean of %s cameras per batch" +
                     " in %s expected in the day",
                     cams_group,
