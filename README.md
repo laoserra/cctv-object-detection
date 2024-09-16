@@ -1,8 +1,8 @@
 This project is being developed by Urban Big Data Centre and Glasgow City Council with the aim to present regular counts of persons, vehicles  and cyclists from CCTV images in different locations of Glasgow City Centre. At the time of writing (2023.07.03), counts are being made for every 30 minutes of the day, using more than 50 cameras.
 
 This project has currently four areas of development:
-1. CCTV Image Capture
-2. [CCTV Image Processing](https://github.com/urbanbigdatacentre/glasgow-cctv-object-detection)
+1. CCTV Image Capture ( responsibility of Glasgow City Council, Neighbourhood and Regeneration Services)
+2. CCTV Image Processing (current repository)
 3. [CCTV Backend](https://github.com/urbanbigdatacentre/glasgow-cctv/tree/main/projects/backend)
 4. [CCTV Frontend](https://github.com/urbanbigdatacentre/glasgow-cctv/tree/main/projects/frontend)
 
