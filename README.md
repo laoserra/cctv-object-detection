@@ -151,7 +151,7 @@ git clone git@github.com:urbanbigdatacentre/glasgow-cctv-object-detection.git
 psql -U postgres -h localhost -f ./general_utils/create_detection_tables.sql
 ```
 
-3. Download the models `faster_rcnn_1024_parent.tar.gz` and `yolov4_9_objs.tar.gz` from https://github.com/urbanbigdatacentre/glasgow-cctv-object-detection/releases/tag/v1.0.0. Afterwards, copy the two files to the sub-directory `models/`, inside the project directory. Unzip both files with the following bash command:
+3. Download the models `faster_rcnn_1024_parent.tar.gz` and `yolov4_9_objs.tar.gz` from **Releases**, to the right of the list of files, or directly from [here](https://github.com/urbanbigdatacentre/cctv-object-detection/releases/). Afterwards, copy the two binaries to the sub-directory `models/`, inside the project directory. Unzip both files with the following bash command:
 ```bash
 tar -xzvf faster_rcnn_1024_parent.tar.gz
 tar -xzvf yolov4_9_objs.tar.gz
