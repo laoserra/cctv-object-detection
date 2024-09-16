@@ -113,7 +113,7 @@ Set the proper permission so it would be used by psql:
 ```bash
 sudo chmod 600 .pgpass
 ```
-Finally export PGPASSFILE file to sent environment variable:
+Finally export PGPASSFILE file to set environment variable:
 ```bash
 export PGPASSFILE='/home/user/.pgpass'
 ```
