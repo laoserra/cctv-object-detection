@@ -1,8 +1,8 @@
 This project is being developed by Urban Big Data Centre and Glasgow City Council with the aim to present regular counts of persons, vehicles  and cyclists from CCTV images in different locations of Glasgow City Centre. At the time of writing (2023.07.03), counts are being made for every 30 minutes of the day, using more than 50 cameras.
 
 This project has currently four areas of development:
-1. CCTV Image Capture
-2. [CCTV Image Processing](https://github.com/urbanbigdatacentre/glasgow-cctv-object-detection)
+1. CCTV Image Capture ( responsibility of Glasgow City Council, Neighbourhood and Regeneration Services)
+2. CCTV Image Processing (current repository)
 3. [CCTV Backend](https://github.com/urbanbigdatacentre/glasgow-cctv/tree/main/projects/backend)
 4. [CCTV Frontend](https://github.com/urbanbigdatacentre/glasgow-cctv/tree/main/projects/frontend)
 
@@ -113,7 +113,7 @@ Set the proper permission so it would be used by psql:
 ```bash
 sudo chmod 600 .pgpass
 ```
-Finally export PGPASSFILE file to sent environment variable:
+Finally export PGPASSFILE file to set environment variable:
 ```bash
 export PGPASSFILE='/home/user/.pgpass'
 ```
@@ -151,7 +151,7 @@ git clone git@github.com:urbanbigdatacentre/glasgow-cctv-object-detection.git
 psql -U postgres -h localhost -f ./general_utils/create_detection_tables.sql
 ```
 
-3. Download the models `faster_rcnn_1024_parent.tar.gz` and `yolov4_9_objs.tar.gz` from https://github.com/urbanbigdatacentre/glasgow-cctv-object-detection/releases/tag/v1.0.0. Afterwards, copy the two files to the sub-directory `models/`, inside the project directory. Unzip both files with the following bash command:
+3. Download the models `faster_rcnn_1024_parent.tar.gz` and `yolov4_9_objs.tar.gz` from **Releases**, to the right of the list of files, or directly from [here](https://github.com/urbanbigdatacentre/cctv-object-detection/releases/). Afterwards, copy the two binaries to the sub-directory `models/`, inside the project directory. Unzip both files with the following bash command:
 ```bash
 tar -xzvf faster_rcnn_1024_parent.tar.gz
 tar -xzvf yolov4_9_objs.tar.gz
