@@ -1,6 +1,6 @@
-This project is being developed by Urban Big Data Centre and Glasgow City Council with the aim to present regular counts of persons, vehicles  and cyclists from CCTV images in different locations of Glasgow City Centre. At the time of writing (2023.07.03), counts are being made for every 30 minutes of the day, using more than 50 cameras.
+This project, supported by the Urban Big Data Centre and Glasgow City Council, aimed to provide regular counts of people, vehicles, and cyclists captured by CCTV cameras at various locations throughout the City Centre. Counts are being made for every 30 minutes of the day, using more than 80 cameras.
 
-This project has currently four areas of development:
+This project had four areas of development:
 1. CCTV Image Capture ( responsibility of Glasgow City Council, Neighbourhood and Regeneration Services)
 2. CCTV Image Processing (current repository)
 3. [CCTV Backend](https://github.com/urbanbigdatacentre/glasgow-cctv/tree/main/projects/backend)
@@ -8,7 +8,7 @@ This project has currently four areas of development:
 
 This repo corresponds to the second area of development, that is, **CCTV Image Processing**.
 
-This new release aims to:
+This release aimed to:
 - Update and simplify existing code from Tensorflow 1 to Tensorflow 2.
 - Deploy in-house trained Yolo model to detect different types of vehicles, pedestrians and cyclists.
 
@@ -21,19 +21,38 @@ A simplified flowchart of the once-a-day operations to feed the API:
 ![Continuous operations](./general_utils/CCTV_once_a_day_process.PNG)
 
 # Getting started
-The current project is deployed in an Ubuntu 20.04 LTS server machine. However, it is possible to run this project in any Linux Debian machine with NVIDIA GPU. 
+The current project is deployed on an Ubuntu 20.04 LTS server machine. However, it is possible to run this project on any Linux Debian machine with NVIDIA GPU. 
 
-The instalation process consists in installing the GPU NVIDIA drivers, cloning the project, creating the necessary files and folders, and installing required dependencies. Below are my notes to this process.
+The instalation process consists in installing several packages to run the project (e.g. GPU NVIDIA drivers, Docker, etc), cloning the project, creating the necessary files and folders, and installing required dependencies. Below are my notes to this process.
 
 ## Install Docker Engine
 This project makes use of Tensorflow Serving container to serve object detections. Follow instructions [here](https://docs.docker.com/engine/install/) to install Docker Engine. Afterwards, don't forget to perform the [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/).
 
-## Install NVIDIA CUDA Toolkit
+## Install NVIDIA Drivers and Toolkit
+1. Install NVIDIA driver
 
-Follow instructions [here](https://developer.nvidia.com/cuda-toolkit-archive) to install the latest release of the CUDA Toolkit and CUDA drivers.
+There are several ways to install Nvidia drivers. The safest and most straightforward approach for ensuring compatibility with the system is by using the `ubuntu-drivers-common` package. Another option is to manually install the drivers following instructions from the [NVIDIA website](https://www.nvidia.com/en-us/drivers/).
+
+```bash
+sudo apt update
+sudo ubuntu-drivers autoinstall
+```
+Test the driver installation by running the bash command `nvidia-smi` (see below the expected output). You might need to reboot the system beforehand.
+
+2. Test if the `gcc` library is installed. If not install it.
+
+```bash
+sudo apt install gcc
+gcc -v
+```
+
+3. Follow instructions [here](https://developer.nvidia.com/cuda-toolkit-archive) to install the latest release of the CUDA Toolkit installer.
 
 > [!NOTE]
-> NVIDIA recommends installing a **distribution-specific** package rather than a **distribution-independent** package. Following NVIDIA's advice, we recommend installing the **deb** option rather than the **run** option.
+> It is not necessary to install the NVIDIA toolkit (CUDA toolkit) if the goal is just to run a Tensorflow Docker container with GPU support unless you plan to develop CUDA applications outside the Docker environment.
+> If installing the CUDA Toolkit, NVIDIA recommends installing a **distribution-specific** package rather than a **distribution-independent** package. Following NVIDIA's advice, we recommend installing the **deb** option rather than the **run** option.
+
+Test the installation by running the command `nvcc -V`.
 
 Finally, don't forget to add the path to the current environment:
 
@@ -42,9 +61,9 @@ export PATH=/usr/local/<cuda-version>/bin${PATH:+:${PATH}}
 ```
 To make the environment path persistent, add the path to the `.bashrc` configuration file.
 
-3. Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html).
+4. Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html).
 
-4. Test a sample workload to verify installation:
+5. Test a sample workload to verify installation:
 ```bash
 sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 ```
